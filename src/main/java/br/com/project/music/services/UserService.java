@@ -6,6 +6,7 @@ import jakarta.persistence.EntityNotFoundException;
 import jakarta.persistence.OptimisticLockException;
 import org.hibernate.StaleObjectStateException;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -19,12 +20,14 @@ public class UserService {
 
     @Autowired
     private UserRepository userRepository;
+    @Autowired
+    private BCryptPasswordEncoder passwordEncoder;
 
     public User createUser(UserDTO userDTO) {
         User user = new User();
         user.setName(userDTO.getName());
         user.setEmail(userDTO.getEmail());
-        user.setSenha(userDTO.getSenha());
+        user.setSenha(passwordEncoder.encode(userDTO.getSenha()));
         if(userDTO.getDataCriacao() == null) {
             user.setDataCriacao(Timestamp.from(Instant.now()));
         } else {
@@ -46,7 +49,14 @@ public class UserService {
         return userRepository.findByEmail(email);
     }
     public User getUserByEmailAndSenha(String email, String senha) {
-        return userRepository.findByEmailAndSenha(email, senha).orElse(null);
+        Optional<User> userOptional = userRepository.findByEmail(email);
+        if (userOptional.isPresent()) {
+            User user = userOptional.get();
+            if (passwordEncoder.matches(senha, user.getSenha())) {
+                return user;
+            }
+        }
+        return null;
     }
 
     @Transactional
@@ -60,8 +70,8 @@ public class UserService {
             if (userDTO.getEmail() != null && !userDTO.getEmail().equals(existingUser.getEmail())) {
                 existingUser.setEmail(userDTO.getEmail());
             }
-            if (userDTO.getSenha() != null && !userDTO.getSenha().equals(existingUser.getSenha())) {
-                existingUser.setSenha(userDTO.getSenha());
+            if (userDTO.getSenha() != null && !passwordEncoder.matches(userDTO.getSenha(), existingUser.getSenha())) {
+                existingUser.setSenha(passwordEncoder.encode(userDTO.getSenha()));
             }
             if(userDTO.getDataCriacao() != null && !userDTO.getDataCriacao().equals(existingUser.getDataCriacao())){
                 existingUser.setDataCriacao(userDTO.getDataCriacao());
