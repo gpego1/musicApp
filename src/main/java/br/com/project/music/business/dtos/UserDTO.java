@@ -13,6 +13,4 @@ public class UserDTO {
     private String email;
     private String senha;
     private Timestamp dataCriacao;
-
-
 }
