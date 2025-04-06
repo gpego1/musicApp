@@ -15,11 +15,11 @@ import java.io.Serializable;
 public class Contrato {
     @Id
     @Column(name = "id_musico")
-    private int idMusico;
+    private Long idMusico;
 
     @Id
     @Column(name = "id_reserva")
-    private int idReserva;
+    private Long idReserva;
 
     @ManyToOne
     @JoinColumn(name = "id_musico", insertable = false, updatable = false)
@@ -32,31 +32,14 @@ public class Contrato {
 
     class ContratoId implements Serializable {
 
-        private int idMusico;
-        private int idReserva;
-
+        private Long idMusico;
+        private Long idReserva;
 
         public ContratoId() {
         }
 
-        public ContratoId(int idMusico, int idReserva) {
+        public ContratoId(Long idMusico, Long idReserva) {
             this.idMusico = idMusico;
-            this.idReserva = idReserva;
-        }
-
-        public int getIdMusico() {
-            return idMusico;
-        }
-
-        public void setIdMusico(int idMusico) {
-            this.idMusico = idMusico;
-        }
-
-        public int getIdReserva() {
-            return idReserva;
-        }
-
-        public void setIdReserva(int idReserva) {
             this.idReserva = idReserva;
         }
 
@@ -67,15 +50,17 @@ public class Contrato {
 
             ContratoId that = (ContratoId) o;
 
-            if (idMusico != that.idMusico) return false;
-            return idReserva == that.idReserva;
+            if (idMusico != null ? !idMusico.equals(that.idMusico) : that.idMusico != null) return false;
+            return idReserva != null ? idReserva.equals(that.idReserva) : that.idReserva == null;
         }
 
         @Override
         public int hashCode() {
-            int result = idMusico;
-            result = 31 * result + idReserva;
+            int result = idMusico != null ? idMusico.hashCode() : 0;
+            result = 31 * result + (idReserva != null ? idReserva.hashCode() : 0);
             return result;
         }
+
+
 
 }
