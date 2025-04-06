@@ -18,7 +18,7 @@ public class Musico {
     @Column(name = "id_musico")
     private Long idMusico;
 
-    @OneToOne(cascade = CascadeType.ALL)
+    @OneToOne(cascade = CascadeType.MERGE)
     @JoinColumn(name="id_usuario")
     private User usuario;
 
