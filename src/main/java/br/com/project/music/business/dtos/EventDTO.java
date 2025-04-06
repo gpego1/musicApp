@@ -2,10 +2,14 @@ package br.com.project.music.business.dtos;
 
 import br.com.project.music.business.entities.Genre;
 import br.com.project.music.business.entities.Place;
+import lombok.AllArgsConstructor;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 
 import java.time.LocalDateTime;
 
+@NoArgsConstructor
+@AllArgsConstructor
 @Data
 public class EventDTO {
     private Long idEvento;
