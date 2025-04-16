@@ -8,6 +8,8 @@ import jakarta.persistence.EntityNotFoundException;
 import jakarta.persistence.OptimisticLockException;
 import org.hibernate.StaleObjectStateException;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -34,13 +36,9 @@ public class UserServiceImpl implements UserService {
         user.setEmail(userDTO.getEmail());
         user.setSenha(passwordEncoder.encode(userDTO.getSenha()));
         user.setDataCriacao(Timestamp.from(Instant.now()));
+        user.setUserType(userDTO.getUserType() != null ? userDTO.getUserType() : "USER");
         User savedUser = userRepository.save(user);
-        UserDTO savedUserDTO = new UserDTO();
-        savedUserDTO.setId(savedUser.getId());
-        savedUserDTO.setName(savedUser.getName());
-        savedUserDTO.setEmail(savedUser.getEmail());
-        savedUserDTO.setDataCriacao(savedUser.getDataCriacao());
-        return savedUserDTO;
+        return convertToDTO(savedUser);
     }
 
     @Override
@@ -72,6 +70,19 @@ public class UserServiceImpl implements UserService {
             }
         }
         throw new EntityNotFoundException("Invalid email or password");
+    }
+    @Override
+    public UserDetails loadUserByUsername(String email) throws UsernameNotFoundException {
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new UsernameNotFoundException("Usuario nao foi encotrado " + email));
+        return org.springframework.security.core.userdetails.User
+                .withUsername(user.getEmail())
+                .password(user.getSenha())
+                .authorities(user.getUserType() != null ? user.getUserType() : "USER")
+                .accountExpired(false)
+                .accountLocked(false)
+                .credentialsExpired(false)
+                .build();
     }
 
     @Override
@@ -110,7 +121,8 @@ public class UserServiceImpl implements UserService {
                 user.getName(),
                 user.getEmail(),
                 user.getSenha(),
-                user.getDataCriacao()
+                user.getDataCriacao(),
+                user.getUserType()
         );
     }
 }

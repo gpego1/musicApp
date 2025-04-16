@@ -28,4 +28,6 @@ public class Musico {
     @Column(name = "redes_sociais")
     private String redesSociais;
 
+
+
 }
