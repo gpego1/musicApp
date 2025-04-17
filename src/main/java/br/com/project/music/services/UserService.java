@@ -4,6 +4,7 @@ import br.com.project.music.business.dtos.UserDTO;
 import br.com.project.music.business.entities.User;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
+import org.springframework.security.oauth2.core.user.OAuth2User;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -18,4 +19,5 @@ public interface UserService extends UserDetailsService {
     User getUserByEmailAndSenha(String email, String senha);
     UserDTO updateUser(Long id, UserDTO userDTO);
     void deleteUser(Long id);
+    User registerOrLoginGoogleUser(OAuth2User oauthUser);
 }

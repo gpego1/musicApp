@@ -1,5 +1,4 @@
 package br.com.project.music.services.impl;
-
 import br.com.project.music.business.dtos.UserDTO;
 import br.com.project.music.business.entities.User;
 import br.com.project.music.business.repositories.UserRepository;
@@ -11,6 +10,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.security.oauth2.core.user.OAuth2User;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -22,12 +22,14 @@ import java.util.stream.Collectors;
 
 @Service
 public class UserServiceImpl implements UserService {
+    private final UserRepository userRepository;
+    private final BCryptPasswordEncoder passwordEncoder;
 
     @Autowired
-    private UserRepository userRepository;
-
-    @Autowired
-    private BCryptPasswordEncoder passwordEncoder;
+    public UserServiceImpl(UserRepository userRepository, BCryptPasswordEncoder passwordEncoder) {
+        this.userRepository = userRepository;
+        this.passwordEncoder = passwordEncoder;
+    }
 
     @Override
     public UserDTO createUser(UserDTO userDTO) {
@@ -107,6 +109,37 @@ public class UserServiceImpl implements UserService {
         } catch (StaleObjectStateException ex) {
             throw new OptimisticLockException("The data you were trying to update has been modified by another user. Please refresh the data and try again.");
         }
+    }
+    @Override
+    @Transactional
+    public User registerOrLoginGoogleUser(OAuth2User oauthUser) {
+        String email = oauthUser.getAttribute("email");
+        String googleId = oauthUser.getAttribute("sub");
+        String name = oauthUser.getAttribute("name");
+
+        if(email == null || googleId == null) {
+            throw new IllegalArgumentException("Missing required Google OAuth2 attributes");
+        }
+        User user = userRepository.findByGoogleId(googleId);
+        if(user == null) {
+            user = userRepository.findByEmail(email).orElse(null);
+            if(user == null) {
+                user = new User();
+                user.setEmail(email);
+                user.setName(name != null ? name : email.split("@")[0]); // Fallback name from email
+                user.setGoogleId(googleId);
+                user.setUserType("USER");
+                user.setDataCriacao(Timestamp.from(Instant.now()));
+            } else {
+                if(user.getGoogleId() == null) {
+                    user.setGoogleId(googleId);
+                } else if (!user.getGoogleId().equals(googleId)) {
+                    throw new IllegalStateException("Email already associated with different Google account");
+                }
+            }
+            user = userRepository.save(user);
+        }
+        return user;
     }
 
     @Override

@@ -24,6 +24,8 @@ public class User {
     private String email;
     @Column(nullable = false)
     private String senha;
+    @Column(name = "google_id", unique = true, nullable = true)
+    private String googleId;
     @Column(name = "data_criacao", columnDefinition = "TIMESTAMP DEFAULT CURRENT_TIMESTAMP")
     private Timestamp dataCriacao;
     @Column(nullable = false)
@@ -31,6 +33,10 @@ public class User {
 
     @OneToOne(mappedBy = "usuario", cascade = CascadeType.ALL, orphanRemoval = true)
     private Musico musico;
+
+    public boolean isGoogleUser() {
+        return this.googleId != null;
+    }
 
     public boolean isArtista() {
         return "ARTISTA".equals(userType);
