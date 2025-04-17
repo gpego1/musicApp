@@ -1,4 +1,5 @@
 package br.com.project.music.services.impl;
+
 import br.com.project.music.business.dtos.UserDTO;
 import br.com.project.music.business.entities.User;
 import br.com.project.music.business.repositories.UserRepository;
@@ -73,6 +74,7 @@ public class UserServiceImpl implements UserService {
         }
         throw new EntityNotFoundException("Invalid email or password");
     }
+
     @Override
     public UserDetails loadUserByUsername(String email) throws UsernameNotFoundException {
         User user = userRepository.findByEmail(email)
@@ -110,36 +112,51 @@ public class UserServiceImpl implements UserService {
             throw new OptimisticLockException("The data you were trying to update has been modified by another user. Please refresh the data and try again.");
         }
     }
+
     @Override
     @Transactional
     public User registerOrLoginGoogleUser(OAuth2User oauthUser) {
         String email = oauthUser.getAttribute("email");
         String googleId = oauthUser.getAttribute("sub");
         String name = oauthUser.getAttribute("name");
+        String picture = oauthUser.getAttribute("picture");
 
-        if(email == null || googleId == null) {
+        if (email == null || googleId == null) {
             throw new IllegalArgumentException("Missing required Google OAuth2 attributes");
         }
-        User user = userRepository.findByGoogleId(googleId);
-        if(user == null) {
-            user = userRepository.findByEmail(email).orElse(null);
-            if(user == null) {
-                user = new User();
-                user.setEmail(email);
-                user.setName(name != null ? name : email.split("@")[0]); // Fallback name from email
-                user.setGoogleId(googleId);
-                user.setUserType("USER");
-                user.setDataCriacao(Timestamp.from(Instant.now()));
-            } else {
-                if(user.getGoogleId() == null) {
-                    user.setGoogleId(googleId);
-                } else if (!user.getGoogleId().equals(googleId)) {
-                    throw new IllegalStateException("Email already associated with different Google account");
-                }
+        Optional<User> existingUserByGoogleId = userRepository.findByGoogleId(googleId);
+        if (existingUserByGoogleId.isPresent()) {
+            User user = existingUserByGoogleId.get();
+            if (name != null && !name.equals(user.getName())) {
+                user.setName(name);
             }
-            user = userRepository.save(user);
+            if (picture != null && !picture.equals(user.getFoto())) {
+                user.setFoto(picture);
+            }
+            return userRepository.save(user);
         }
-        return user;
+
+        Optional<User> existingUserByEmail = userRepository.findByEmail(email);
+        if (existingUserByEmail.isPresent()) {
+            User user = existingUserByEmail.get();
+            if (user.getGoogleId() == null) {
+                user.setGoogleId(googleId);
+                user.setFoto(picture);
+                return userRepository.save(user);
+            } else if (!user.getGoogleId().equals(googleId)) {
+                throw new IllegalStateException("Email already associated with different Google account");
+            }
+            return user;
+        }
+
+        User newUser = new User();
+        newUser.setEmail(email);
+        newUser.setName(name != null ? name : email.split("@")[0]);
+        newUser.setGoogleId(googleId);
+        newUser.setFoto(picture);
+        newUser.setUserType("USER");
+        newUser.setDataCriacao(Timestamp.from(Instant.now()));
+        return userRepository.save(newUser);
     }
 
     @Override
@@ -153,7 +170,7 @@ public class UserServiceImpl implements UserService {
                 user.getId(),
                 user.getName(),
                 user.getEmail(),
-                user.getSenha(),
+                null,
                 user.getDataCriacao(),
                 user.getUserType()
         );

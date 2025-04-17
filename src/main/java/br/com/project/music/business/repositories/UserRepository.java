@@ -16,6 +16,6 @@ public interface UserRepository extends JpaRepository<User, Long> {
     Optional<User> findByEmailAndSenha(String email, String senha);
 
     @Query("SELECT u FROM User u WHERE u.googleId = :googleId")
-    User findByGoogleId(@Param("googleId") String googleId);
+    Optional<User> findByGoogleId(@Param("googleId") String googleId);
 
 }
