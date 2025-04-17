@@ -8,20 +8,21 @@ import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.security.oauth2.client.authentication.OAuth2AuthenticationToken;
+import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/auth")
 public class AuthController {
 
-    @Autowired
-    private AuthService authService;
+    private final AuthService authService;
+    private final UserService userService;
 
     @Autowired
-    private UserService userService;
+    public AuthController(AuthService authService, UserService userService) {
+        this.authService = authService;
+        this.userService = userService;
+    }
 
     @PostMapping("/register")
     public ResponseEntity<UserDTO> registerUser(@Valid @RequestBody UserDTO userDTO) {
@@ -40,5 +41,26 @@ public class AuthController {
             return ResponseEntity.ok(token);
         }
         return ResponseEntity.badRequest().build();
+    }
+    @GetMapping("/login-success")
+    public ResponseEntity<String> loginSuccess(OAuth2AuthenticationToken oauthToken) {
+        try {
+            var user = userService.registerOrLoginGoogleUser(oauthToken.getPrincipal());
+
+            Auth auth = new Auth();
+            auth.setEmail(user.getEmail());
+            auth.setSenha("");
+
+            String token = authService.authenticate(auth);
+            return ResponseEntity.ok(token);
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                    .body("Falha no login com Google: " + e.getMessage());
+        }
+    }
+    @GetMapping("/login-failure")
+    public ResponseEntity<String> loginFailure() {
+        return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                .body("Falha na autenticação com Google");
     }
 }
