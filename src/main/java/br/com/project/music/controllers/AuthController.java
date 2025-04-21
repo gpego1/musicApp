@@ -5,6 +5,7 @@ import br.com.project.music.business.dtos.UserDTO;
 import br.com.project.music.business.entities.User;
 import br.com.project.music.services.AuthService;
 import br.com.project.music.services.UserService;
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -57,8 +58,8 @@ public class AuthController {
     }
 
     @GetMapping("/oauth2/authorization/google")
-    public RedirectView googleLoginRedirect(@RequestParam Map<String, String> params) {
-        OAuth2AuthorizationRequest authorizationRequest = authorizationRequestResolver.resolve(null, "google");
+    public RedirectView googleLoginRedirect(HttpServletRequest request, @RequestParam Map<String, String> params) {
+        OAuth2AuthorizationRequest authorizationRequest = authorizationRequestResolver.resolve(request, "google");
         if (authorizationRequest == null) {
             return new RedirectView("/login-failure");
         }

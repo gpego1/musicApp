@@ -19,6 +19,6 @@ public class Genre {
     @Column(name = "id_genero_musical")
     private Long idGeneroMusical;
 
-    @Column(name="nome_genero",unique = true, nullable = false)
+    @Column(name="nome_genero", nullable = false)
     private String nomeGenero;
 }
