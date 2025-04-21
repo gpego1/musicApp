@@ -8,7 +8,7 @@ services:
       MYSQL_ROOT_PASSWORD: 1234
       MYSQL_DATABASE: eventomusical
     ports:
-      - "3307:3306"
+      - "3306:3306"
     volumes:
       - eventomusical-db-data:/var/lib/mysql
     networks:
