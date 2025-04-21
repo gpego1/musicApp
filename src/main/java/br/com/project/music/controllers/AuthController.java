@@ -94,4 +94,19 @@ public class AuthController {
         return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
                 .body("Falha na autenticação com Google");
     }
+    @GetMapping("/user/me")
+    public ResponseEntity<Map<String, String>> getUserDetails(HttpServletRequest request) {
+        String authorizationHeader = request.getHeader("Authorization");
+        if (authorizationHeader != null && authorizationHeader.startsWith("Bearer ")) {
+            String token = authorizationHeader.substring(7);
+            String userEmail = authService.getEmailFromToken(token);
+            if (userEmail != null) {
+                User user = userService.getUserByEmail(userEmail).orElse(null);
+                if (user != null) {
+                    return ResponseEntity.ok(Map.of("nome", user.getName()));
+                }
+            }
+        }
+        return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+    }
 }
