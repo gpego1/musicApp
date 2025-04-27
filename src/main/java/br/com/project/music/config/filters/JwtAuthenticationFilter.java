@@ -1,5 +1,4 @@
 package br.com.project.music.config.filters;
-
 import br.com.project.music.services.JwtService;
 import br.com.project.music.services.UserService;
 import jakarta.servlet.FilterChain;
@@ -16,7 +15,6 @@ import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.web.authentication.WebAuthenticationDetailsSource;
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
-
 import java.io.IOException;
 
 @Component
@@ -47,6 +45,8 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
         try {
             final String jwt = authHeader.substring(BEARER_PREFIX.length()).trim();
+            logger.info("Extracted JWT from Header: {}", jwt); // Log the extracted JWT
+
             final String userEmail = jwtService.extractUsername(jwt);
 
             if (userEmail != null && SecurityContextHolder.getContext().getAuthentication() == null) {

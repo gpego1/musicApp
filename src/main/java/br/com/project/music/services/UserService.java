@@ -19,5 +19,7 @@ public interface UserService extends UserDetailsService {
     User getUserByEmailAndSenha(String email, String senha);
     UserDTO updateUser(Long id, UserDTO userDTO);
     void deleteUser(Long id);
+    boolean checkPassword(User user, String currentPassword);
+    void changePassword(User user, String newPassword);
     User registerOrLoginGoogleUser(OAuth2User oauthUser);
 }

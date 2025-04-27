@@ -1,6 +1,7 @@
 package br.com.project.music.controllers;
 
 import br.com.project.music.business.dtos.Auth;
+import br.com.project.music.business.dtos.ChangePasswordDTO;
 import br.com.project.music.business.dtos.UserDTO;
 import br.com.project.music.business.entities.User;
 import br.com.project.music.services.AuthService;
@@ -108,5 +109,30 @@ public class AuthController {
             }
         }
         return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+    }
+    @PostMapping("/change-password")
+    public ResponseEntity<String> changePassword(HttpServletRequest request, @Valid @RequestBody ChangePasswordDTO changePasswordDTO) {
+        String authorizationHeader = request.getHeader("Authorization");
+        if (authorizationHeader != null && authorizationHeader.startsWith("Bearer ")) {
+            String token = authorizationHeader.substring(7);
+            String userEmail = authService.getEmailFromToken(token);
+            if (userEmail != null) {
+                User user = userService.getUserByEmail(userEmail).orElse(null);
+                if (user != null) {
+                    if (userService.checkPassword(user, changePasswordDTO.getCurrentPassword())) {
+                        userService.changePassword(user, changePasswordDTO.getNewPassword());
+                        return ResponseEntity.ok("Senha alterada com sucesso.");
+                    } else {
+                        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Senha atual incorreta.");
+                    }
+                } else {
+                    return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Usuário não encontrado.");
+                }
+            } else {
+                return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Token inválido.");
+            }
+        } else {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Token de autenticação não encontrado.");
+        }
     }
 }

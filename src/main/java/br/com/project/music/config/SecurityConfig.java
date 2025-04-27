@@ -21,6 +21,12 @@ import org.springframework.security.web.authentication.AuthenticationFailureHand
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.security.web.authentication.SimpleUrlAuthenticationSuccessHandler;
 import org.springframework.security.web.authentication.SimpleUrlAuthenticationFailureHandler;
+import org.springframework.web.cors.CorsConfiguration;
+import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
+import org.springframework.web.filter.CorsFilter;
+
+import java.util.Arrays;
+import java.util.Collections;
 
 @Configuration
 @EnableWebSecurity
@@ -37,10 +43,14 @@ public class SecurityConfig {
                 .csrf(AbstractHttpConfigurer::disable)
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/auth/**").permitAll()
+                        .requestMatchers("/auth/login").permitAll() // Allow direct login endpoint
                         .requestMatchers("/oauth2/**").permitAll()
                         .requestMatchers("/login/oauth2/code/google").permitAll()
                         .requestMatchers(HttpMethod.OPTIONS, "/auth/google-login").permitAll()
                         .requestMatchers(HttpMethod.POST, "/auth/google-login").permitAll()
+                        .requestMatchers("/eventos").permitAll()
+                        .requestMatchers("/users").permitAll()
+                        .requestMatchers("/genres").permitAll()
                         .anyRequest().authenticated()
                 )
                 .sessionManagement(sess -> sess.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
@@ -50,9 +60,22 @@ public class SecurityConfig {
                         .failureHandler(authenticationFailureHandler())
                 )
                 .authenticationProvider(authenticationProvider())
-                .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class);
+                .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class)
+                .addFilterBefore(corsFilter(), UsernamePasswordAuthenticationFilter.class); // Ensure CorsFilter is before JwtAuthFilter
 
         return http.build();
+    }
+
+    @Bean
+    public CorsFilter corsFilter() {
+        CorsConfiguration configuration = new CorsConfiguration();
+        configuration.setAllowedOrigins(Collections.singletonList("http://localhost:5173"));
+        configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS"));
+        configuration.setAllowedHeaders(Collections.singletonList("*"));
+        configuration.setAllowCredentials(true);
+        UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
+        source.registerCorsConfiguration("/**", configuration);
+        return new CorsFilter(source);
     }
 
     @Bean

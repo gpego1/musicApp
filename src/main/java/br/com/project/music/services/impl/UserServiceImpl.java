@@ -164,6 +164,16 @@ public class UserServiceImpl implements UserService {
     public void deleteUser(Long id) {
         userRepository.deleteById(id);
     }
+    @Override
+    public boolean checkPassword(User user, String currentPassword) {
+        return passwordEncoder.matches(currentPassword, user.getSenha());
+    }
+
+    @Override
+    public void changePassword(User user, String newPassword) {
+        user.setSenha(passwordEncoder.encode(newPassword));
+        userRepository.save(user);
+    }
 
     private UserDTO convertToDTO(User user) {
         return new UserDTO(
