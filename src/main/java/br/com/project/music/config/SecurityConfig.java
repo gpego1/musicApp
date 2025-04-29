@@ -51,6 +51,8 @@ public class SecurityConfig {
                         .requestMatchers("/eventos").permitAll()
                         .requestMatchers("/users").permitAll()
                         .requestMatchers("/genres").permitAll()
+                        .requestMatchers("/auth/user/me").permitAll()
+                        .requestMatchers("/auth/change-password").permitAll()
                         .anyRequest().authenticated()
                 )
                 .sessionManagement(sess -> sess.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
