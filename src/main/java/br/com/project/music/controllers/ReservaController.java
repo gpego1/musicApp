@@ -1,6 +1,12 @@
 package br.com.project.music.controllers;
 
 import br.com.project.music.business.dtos.ReservaDTO;
+import br.com.project.music.business.dtos.EventDTO;
+import br.com.project.music.business.dtos.UserDTO;
+import br.com.project.music.business.entities.Event;
+import br.com.project.music.business.entities.User;
+import br.com.project.music.business.repositories.EventRepository;
+import br.com.project.music.business.repositories.UserRepository;
 import br.com.project.music.services.ReservaService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -17,8 +23,31 @@ public class ReservaController {
     @Autowired
     private ReservaService reservaService;
 
+    @Autowired
+    private UserRepository userRepository; // Adicione o UserRepository
+
+    @Autowired
+    private EventRepository eventRepository; // Adicione o EventRepository
+
     @PostMapping
-    public ResponseEntity<ReservaDTO> createReserva(@RequestBody ReservaDTO reservaDTO) {
+    public ResponseEntity<?> createReserva(@RequestBody ReservaDTO reservaDTO) {
+        // Buscar o User completo pelo ID diretamente do repositório
+        Optional<User> userOptional = userRepository.findById(reservaDTO.getUsuario().getId());
+        if (!userOptional.isPresent()) {
+            return new ResponseEntity<>("Usuário não encontrado", HttpStatus.BAD_REQUEST);
+        }
+        User user = userOptional.get();
+        reservaDTO.setUsuario(user);
+        // Se o googleId do User encontrado for null, ele permanecerá null no reservaDTO
+
+        // Buscar o Event completo pelo ID diretamente do repositório
+        Optional<Event> eventOptional = eventRepository.findById(reservaDTO.getEvento().getIdEvento());
+        if (!eventOptional.isPresent()) {
+            return new ResponseEntity<>("Evento não encontrado", HttpStatus.BAD_REQUEST);
+        }
+        Event event = eventOptional.get();
+        reservaDTO.setEvento(event);
+
         ReservaDTO createdReserva = reservaService.createReserva(reservaDTO);
         return new ResponseEntity<>(createdReserva, HttpStatus.CREATED);
     }
@@ -37,7 +66,24 @@ public class ReservaController {
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<ReservaDTO> updateReserva(@PathVariable Long id, @RequestBody ReservaDTO reservaDTO) {
+    public ResponseEntity<?> updateReserva(@PathVariable Long id, @RequestBody ReservaDTO reservaDTO) {
+        // Buscar o User completo pelo ID diretamente do repositório
+        Optional<User> userOptional = userRepository.findById(reservaDTO.getUsuario().getId());
+        if (!userOptional.isPresent()) {
+            return new ResponseEntity<>("Usuário não encontrado", HttpStatus.BAD_REQUEST);
+        }
+        User user = userOptional.get();
+        reservaDTO.setUsuario(user);
+        // Se o googleId do User encontrado for null, ele permanecerá null no reservaDTO
+
+        // Buscar o Event completo pelo ID diretamente do repositório
+        Optional<Event> eventOptional = eventRepository.findById(reservaDTO.getEvento().getIdEvento());
+        if (!eventOptional.isPresent()) {
+            return new ResponseEntity<>("Evento não encontrado", HttpStatus.BAD_REQUEST);
+        }
+        Event event = eventOptional.get();
+        reservaDTO.setEvento(event);
+
         ReservaDTO updatedReserva = reservaService.updateReserva(id, reservaDTO);
         if (updatedReserva != null) {
             return new ResponseEntity<>(updatedReserva, HttpStatus.OK);

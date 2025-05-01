@@ -66,6 +66,18 @@ public class AuthController {
         }
         return new RedirectView(authorizationRequest.getAuthorizationUri());
     }
+    @PostMapping("/google")
+    public ResponseEntity<String> loginWithGoogle(@RequestBody Map<String, String> request) {
+        try {
+            String token = request.get("token");
+            // Verifique o token do Google e gere seu JWT
+            String jwtToken = authService.authenticateWithGoogle(token);
+            return ResponseEntity.ok(jwtToken);
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                    .body("Falha na autenticação com Google: " + e.getMessage());
+        }
+    }
 
 
     @GetMapping("/login-success")
