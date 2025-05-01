@@ -51,6 +51,7 @@ public class SecurityConfig {
                         .requestMatchers("/eventos").permitAll()
                         .requestMatchers("/users").permitAll()
                         .requestMatchers("/genres").permitAll()
+                        .requestMatchers("/reservas").permitAll()
                         .requestMatchers("/auth/user/me").permitAll()
                         .requestMatchers("/auth/change-password").permitAll()
                         .anyRequest().authenticated()
@@ -71,11 +72,13 @@ public class SecurityConfig {
     @Bean
     public CorsFilter corsFilter() {
         CorsConfiguration configuration = new CorsConfiguration();
+        // Replace with the actual origin(s) of your frontend application
         configuration.setAllowedOrigins(Collections.singletonList("http://localhost:5173"));
         configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS"));
         configuration.setAllowedHeaders(Collections.singletonList("*"));
-        configuration.setAllowCredentials(true);
+        configuration.setAllowCredentials(true); // Important for allowing cookies, authorization headers, etc.
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
+        // Apply this configuration to all paths in your application
         source.registerCorsConfiguration("/**", configuration);
         return new CorsFilter(source);
     }

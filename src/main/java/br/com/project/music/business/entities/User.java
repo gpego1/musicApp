@@ -20,11 +20,12 @@ public class User {
     private String email;
     @Column(nullable = false)
     private String senha;
-    @Column(name = "google_id", unique = true, nullable = true)
-    private String googleId;
+
+
     @Column(name = "data_criacao", columnDefinition = "TIMESTAMP DEFAULT CURRENT_TIMESTAMP")
     private Timestamp dataCriacao;
 
+    private String googleId;
     private String foto;
 
     @Column(nullable = false)
