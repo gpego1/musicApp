@@ -45,7 +45,6 @@ public class SecurityConfig {
                         .requestMatchers("/auth/**").permitAll()
                         .requestMatchers("/auth/login").permitAll() // Allow direct login endpoint
                         .requestMatchers("/oauth2/**").permitAll()
-                        .requestMatchers("/auth/google").permitAll()
                         .requestMatchers("/login/oauth2/code/google").permitAll()
                         .requestMatchers(HttpMethod.OPTIONS, "/auth/google-login").permitAll()
                         .requestMatchers(HttpMethod.POST, "/auth/google-login").permitAll()
@@ -53,8 +52,6 @@ public class SecurityConfig {
                         .requestMatchers("/users").permitAll()
                         .requestMatchers("/genres").permitAll()
                         .requestMatchers("/reservas").permitAll()
-                        .requestMatchers("/auth/user/me").permitAll()
-                        .requestMatchers("/auth/change-password").permitAll()
                         .anyRequest().authenticated()
                 )
                 .sessionManagement(sess -> sess.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
@@ -73,13 +70,11 @@ public class SecurityConfig {
     @Bean
     public CorsFilter corsFilter() {
         CorsConfiguration configuration = new CorsConfiguration();
-        // Replace with the actual origin(s) of your frontend application
         configuration.setAllowedOrigins(Collections.singletonList("http://localhost:5173"));
         configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS"));
         configuration.setAllowedHeaders(Collections.singletonList("*"));
-        configuration.setAllowCredentials(true); // Important for allowing cookies, authorization headers, etc.
+        configuration.setAllowCredentials(true);
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
-        // Apply this configuration to all paths in your application
         source.registerCorsConfiguration("/**", configuration);
         return new CorsFilter(source);
     }
