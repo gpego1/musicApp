@@ -28,19 +28,25 @@ public class User {
     private String googleId;
     private String foto;
 
-    @Column(nullable = false)
-    private String userType = "USER";
-
     @OneToOne(mappedBy = "usuario", cascade = CascadeType.ALL, orphanRemoval = true)
     private Musico musico;
 
-    public boolean isGoogleUser() {
-        return this.googleId != null;
+    public enum Role{
+        USER,
+        CLIENT,
+        HOST,
+        ARTISTA
     }
+    @Enumerated
+    @Column(nullable = false)
+    private Role role;
 
-    public boolean isArtista() {
-        return "ARTISTA".equals(userType);
-    }
+    public boolean isGoogleUser() {return this.googleId != null;}
+
+    public boolean isArtista(){return Role.ARTISTA.equals(this.role);}
+    public boolean isClient() {return Role.CLIENT.equals(this.role);}
+    public boolean isHost() {return Role.HOST.equals(this.role);}
+
     public void setMusico(Musico musico) {
         if (isArtista()) {
             this.musico = musico;
@@ -49,4 +55,6 @@ public class User {
             throw new IllegalStateException("Apenas usuários do tipo ARTISTA podem ter um perfil de músico");
         }
     }
+    public void setRole(Role role) {this.role = role;}
+
 }

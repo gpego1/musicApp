@@ -1,6 +1,7 @@
 package br.com.project.music.services.impl;
 
 import br.com.project.music.business.dtos.UserDTO;
+import br.com.project.music.business.entities.Musico;
 import br.com.project.music.business.entities.User;
 import br.com.project.music.business.repositories.UserRepository;
 import br.com.project.music.services.UserService;
@@ -39,7 +40,15 @@ public class UserServiceImpl implements UserService {
         user.setEmail(userDTO.getEmail());
         user.setSenha(passwordEncoder.encode(userDTO.getSenha()));
         user.setDataCriacao(Timestamp.from(Instant.now()));
-        user.setUserType(userDTO.getUserType() != null ? userDTO.getUserType() : "USER");
+        user.setRole(userDTO.getRole() != null ? userDTO.getRole() : User.Role.USER); // Define o role
+
+        if(userDTO.getRole() == User.Role.ARTISTA) {
+            Musico musico = new Musico();
+            musico.setNomeArtistico(userDTO.getNomeArtistico());
+            musico.setRedesSociais(userDTO.getRedesSociais());
+            user.setMusico(musico);
+        }
+
         User savedUser = userRepository.save(user);
         return convertToDTO(savedUser);
     }
@@ -82,7 +91,7 @@ public class UserServiceImpl implements UserService {
         return org.springframework.security.core.userdetails.User
                 .withUsername(user.getEmail())
                 .password(user.getSenha())
-                .authorities(user.getUserType() != null ? user.getUserType() : "USER")
+                .authorities(user.getRole().name())
                 .accountExpired(false)
                 .accountLocked(false)
                 .credentialsExpired(false)
@@ -106,6 +115,9 @@ public class UserServiceImpl implements UserService {
             }
             if (userDTO.getDataCriacao() != null && !userDTO.getDataCriacao().equals(existingUser.getDataCriacao())) {
                 existingUser.setDataCriacao(userDTO.getDataCriacao());
+            }
+            if (userDTO.getRole() != null && !userDTO.getRole().equals(existingUser.getRole())) {
+                existingUser.setRole(userDTO.getRole());
             }
             return convertToDTO(userRepository.save(existingUser));
         } catch (StaleObjectStateException ex) {
@@ -154,8 +166,8 @@ public class UserServiceImpl implements UserService {
         newUser.setName(name != null ? name : email.split("@")[0]);
         newUser.setGoogleId(googleId);
         newUser.setFoto(picture);
-        newUser.setUserType("USER");
         newUser.setDataCriacao(Timestamp.from(Instant.now()));
+        newUser.setRole(User.Role.USER);
         return userRepository.save(newUser);
     }
 
@@ -176,13 +188,16 @@ public class UserServiceImpl implements UserService {
     }
 
     private UserDTO convertToDTO(User user) {
-        return new UserDTO(
+       UserDTO dto = new UserDTO(
                 user.getId(),
                 user.getName(),
                 user.getEmail(),
                 null,
                 user.getDataCriacao(),
-                user.getUserType()
+                user.getRole(),
+                user.getMusico() != null ? user.getMusico().getNomeArtistico() : null,
+                user.getMusico() != null ? user.getMusico().getRedesSociais() : null
         );
+        return dto;
     }
 }

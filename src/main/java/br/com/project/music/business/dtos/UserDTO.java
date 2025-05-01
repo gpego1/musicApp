@@ -1,7 +1,6 @@
 package br.com.project.music.business.dtos;
-
 import lombok.*;
-
+import br.com.project.music.business.entities.User.Role;
 import java.sql.Timestamp;
 
 @Data
@@ -13,5 +12,8 @@ public class UserDTO {
     private String email;
     private String senha;
     private Timestamp dataCriacao;
-    private String userType;
+    private Role role;
+    //Se for musico:
+    private String nomeArtistico;
+    private String redesSociais;
 }
