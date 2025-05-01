@@ -1,5 +1,4 @@
 package br.com.project.music.services.impl;
-
 import br.com.project.music.business.dtos.UserDTO;
 import br.com.project.music.business.entities.Musico;
 import br.com.project.music.business.entities.User;
@@ -15,7 +14,6 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.oauth2.core.user.OAuth2User;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
 import java.sql.Timestamp;
 import java.time.Instant;
 import java.util.List;
@@ -40,7 +38,7 @@ public class UserServiceImpl implements UserService {
         user.setEmail(userDTO.getEmail());
         user.setSenha(passwordEncoder.encode(userDTO.getSenha()));
         user.setDataCriacao(Timestamp.from(Instant.now()));
-        user.setRole(userDTO.getRole() != null ? userDTO.getRole() : User.Role.USER); // Define o role
+        user.setRole(userDTO.getRole() != null ? userDTO.getRole() : User.Role.CLIENT);
 
         if(userDTO.getRole() == User.Role.ARTISTA) {
             Musico musico = new Musico();
@@ -167,7 +165,7 @@ public class UserServiceImpl implements UserService {
         newUser.setGoogleId(googleId);
         newUser.setFoto(picture);
         newUser.setDataCriacao(Timestamp.from(Instant.now()));
-        newUser.setRole(User.Role.USER);
+        newUser.setRole(User.Role.CLIENT);
         return userRepository.save(newUser);
     }
 

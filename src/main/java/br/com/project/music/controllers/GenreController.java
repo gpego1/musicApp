@@ -8,6 +8,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 @RestController
@@ -22,9 +23,16 @@ public class GenreController {
     }
 
     @PostMapping
-    public ResponseEntity<Genre> createGenre(@RequestBody Genre genre) {
-        Genre createdGenre = genreService.createGenre(genre);
-        return new ResponseEntity<>(createdGenre, HttpStatus.CREATED);
+    public ResponseEntity<Genre> createGenre(@RequestBody Map<String, String> payload) {
+        String nomeGenero = payload.get("nomeGenero");
+        if (nomeGenero != null && !nomeGenero.trim().isEmpty()) {
+            Genre genre = new Genre();
+            genre.setNomeGenero(nomeGenero);
+            Genre createdGenre = genreService.createGenre(genre);
+            return new ResponseEntity<>(createdGenre, HttpStatus.CREATED);
+        } else {
+            return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+        }
     }
 
     @GetMapping("/{id}")

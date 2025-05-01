@@ -116,7 +116,7 @@ public class AuthController {
             if (userEmail != null) {
                 User user = userService.getUserByEmail(userEmail).orElse(null);
                 if (user != null) {
-                    return ResponseEntity.ok(Map.of("nome", user.getName()));
+                    return ResponseEntity.ok(Map.of("nome", user.getName(), "role", user.getRole().name()));
                 }
             }
         }

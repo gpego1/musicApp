@@ -26,11 +26,11 @@ public class Event {
     @Column(name = "descricao")
     private String descricao;
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "id_genero_musical")
     private Genre generoMusical;
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "id_local_evento")
     private Place localEvento;
 

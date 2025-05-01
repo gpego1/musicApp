@@ -32,7 +32,6 @@ public class User {
     private Musico musico;
 
     public enum Role{
-        USER,
         CLIENT,
         HOST,
         ARTISTA
@@ -44,7 +43,6 @@ public class User {
     public boolean isGoogleUser() {return this.googleId != null;}
 
     public boolean isArtista(){return Role.ARTISTA.equals(this.role);}
-    public boolean isClient() {return Role.CLIENT.equals(this.role);}
     public boolean isHost() {return Role.HOST.equals(this.role);}
 
     public void setMusico(Musico musico) {
