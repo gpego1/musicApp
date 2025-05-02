@@ -1,6 +1,4 @@
-// ReservaServiceImpl.java
 package br.com.project.music.services.impl;
-
 import br.com.project.music.business.dtos.ReservaDTO;
 import br.com.project.music.business.entities.Reserva;
 import br.com.project.music.business.entities.User;
@@ -11,7 +9,6 @@ import br.com.project.music.business.repositories.EventRepository;
 import br.com.project.music.services.ReservaService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -33,7 +30,7 @@ public class ReservaServiceImpl implements ReservaService {
         User user = userRepository.findById(reservaDTO.getUsuario().getId()).orElse(null);
         Event event = eventRepository.findById(reservaDTO.getEvento().getIdEvento()).orElse(null);
         if (user == null || event == null) {
-            return null; // Handle not found scenario
+            return null;
         }
         Reserva reserva = convertToEntity(reservaDTO, user, event);
         Reserva savedReserva = reservaRepository.save(reserva);
@@ -67,12 +64,10 @@ public class ReservaServiceImpl implements ReservaService {
         }
         return null; // Handle not found scenario
     }
-
     @Override
     public void deleteReservaById(Long id) {
         reservaRepository.deleteById(id);
     }
-
     @Override
     public List<ReservaDTO> getReservasByUsuario(Long userId) {
         return userRepository.findById(userId)
@@ -81,7 +76,6 @@ public class ReservaServiceImpl implements ReservaService {
                         .collect(Collectors.toList()))
                 .orElse(null); // Handle user not found
     }
-
     @Override
     public List<ReservaDTO> getReservasByEvento(Long eventoId) {
         return eventRepository.findById(eventoId)
@@ -90,7 +84,6 @@ public class ReservaServiceImpl implements ReservaService {
                         .collect(Collectors.toList()))
                 .orElse(null); // Handle event not found
     }
-
     @Override
     public List<ReservaDTO> getReservasByUserAndEvent(Long userId, Long eventoId) {
         return userRepository.findById(userId)
@@ -100,7 +93,6 @@ public class ReservaServiceImpl implements ReservaService {
                                 .collect(Collectors.toList())))
                 .orElse(null); // Handle user or event not found
     }
-
     private ReservaDTO convertToDTO(Reserva reserva) {
         ReservaDTO dto = new ReservaDTO();
         dto.setIdReserva(reserva.getIdReserva());
@@ -109,7 +101,6 @@ public class ReservaServiceImpl implements ReservaService {
         dto.setConfirmado(reserva.isConfirmado());
         return dto;
     }
-
     private Reserva convertToEntity(ReservaDTO dto, User user, Event event) {
         Reserva reserva = new Reserva();
         reserva.setIdReserva(dto.getIdReserva());

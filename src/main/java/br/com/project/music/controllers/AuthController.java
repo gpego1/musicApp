@@ -121,20 +121,16 @@ public class AuthController {
                 "name", googleUserInfo.getName(),
                 "picture", googleUserInfo.getPicture()
         );
-
         OAuth2User oauthUser = new DefaultOAuth2User(
                 Collections.emptySet(),
                 oauthAttributes,
                 "email"
         );
-
         User user = userService.registerOrLoginGoogleUser(oauthUser);
-
         if(user.getGoogleId() == null) {
             user.setGoogleId(googleUserInfo.getId());
             user = userRepository.save(user);
         }
-
         return user;
     }
 
@@ -149,6 +145,7 @@ public class AuthController {
                         "photo", user.getFoto(),
                         "isGoogleUser", user.getGoogleId() != null,
                         "hasPassword", user.getSenha() != null
+
                 )
         );
     }
