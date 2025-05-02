@@ -18,6 +18,7 @@ import java.sql.Timestamp;
 import java.time.Instant;
 import java.util.List;
 import java.util.Optional;
+import java.util.UUID;
 import java.util.stream.Collectors;
 
 @Service
@@ -161,7 +162,6 @@ public class UserServiceImpl implements UserService {
             }
             return user;
         }
-
         User newUser = new User();
         newUser.setEmail(email);
         newUser.setName(name != null ? name : email.split("@")[0]);
@@ -169,6 +169,7 @@ public class UserServiceImpl implements UserService {
         newUser.setFoto(picture);
         newUser.setDataCriacao(Timestamp.from(Instant.now()));
         newUser.setRole(User.Role.CLIENT);
+        newUser.setSenha(passwordEncoder.encode(UUID.randomUUID().toString()));
         return userRepository.save(newUser);
     }
 

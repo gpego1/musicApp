@@ -2,12 +2,16 @@ package br.com.project.music.controllers;
 
 import br.com.project.music.business.dtos.Auth;
 import br.com.project.music.business.dtos.ChangePasswordDTO;
+import br.com.project.music.business.dtos.GoogleUserInfo;
 import br.com.project.music.business.dtos.UserDTO;
 import br.com.project.music.business.entities.User;
+import br.com.project.music.business.repositories.UserRepository;
 import br.com.project.music.services.AuthService;
 import br.com.project.music.services.UserService;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -16,15 +20,22 @@ import org.springframework.security.oauth2.client.registration.ClientRegistratio
 import org.springframework.security.oauth2.client.web.DefaultOAuth2AuthorizationRequestResolver;
 import org.springframework.security.oauth2.client.web.OAuth2AuthorizationRequestResolver;
 import org.springframework.security.oauth2.core.endpoint.OAuth2AuthorizationRequest;
+import org.springframework.security.oauth2.core.user.DefaultOAuth2User;
+import org.springframework.security.oauth2.core.user.OAuth2User;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.view.RedirectView;
 
+
+import java.sql.Timestamp;
+import java.util.Collections;
 import java.util.Map;
+import java.util.Optional;
 
 @RestController
 @RequestMapping("/auth")
 public class AuthController {
 
+    private static final Logger logger = LoggerFactory.getLogger(AuthController.class);
     private final AuthService authService;
     private final UserService userService;
     private final ClientRegistrationRepository clientRegistrationRepository;
@@ -38,6 +49,9 @@ public class AuthController {
         this.authorizationRequestResolver = new DefaultOAuth2AuthorizationRequestResolver(
                 this.clientRegistrationRepository, "/oauth2/authorization");
     }
+
+    @Autowired
+    private UserRepository userRepository;
 
     @PostMapping("/register")
     public ResponseEntity<UserDTO> registerUser(@Valid @RequestBody UserDTO userDTO) {
@@ -67,19 +81,77 @@ public class AuthController {
         return new RedirectView(authorizationRequest.getAuthorizationUri());
     }
     @PostMapping("/google")
-    public ResponseEntity<String> loginWithGoogle(@RequestBody Map<String, String> request) {
+    public ResponseEntity<?> loginWithGoogle(@RequestBody Map<String, String> request) {
         try {
             String token = request.get("token");
-            // Verifique o token do Google e gere seu JWT
+            if (token == null || token.isEmpty()) {
+                return ResponseEntity.badRequest().body(Map.of(
+                        "error", "Token não fornecido",
+                        "message", "O token do Google é obrigatório"
+                ));
+            }
+            GoogleUserInfo googleUserInfo = authService.verifyGoogleToken(token);
+            User user = registerOrUpdateGoogleUser(googleUserInfo);
             String jwtToken = authService.authenticateWithGoogle(token);
-            return ResponseEntity.ok(jwtToken);
+            return ResponseEntity.ok(createAuthResponse(jwtToken, user));
+        } catch (IllegalArgumentException e) {
+            logger.error("Dados do Google incompletos: {}", e.getMessage());
+            return ResponseEntity.badRequest().body(Map.of(
+                    "error", "Dados incompletos",
+                    "message", e.getMessage()
+            ));
+        } catch (IllegalStateException e) {
+            logger.error("Conflito com conta existente: {}", e.getMessage());
+            return ResponseEntity.status(HttpStatus.CONFLICT).body(Map.of(
+                    "error", "Conflito de conta",
+                    "message", e.getMessage()
+            ));
         } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
-                    .body("Falha na autenticação com Google: " + e.getMessage());
+            logger.error("Falha no login com Google", e);
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(Map.of(
+                    "error", "Falha na autenticação",
+                    "message", e.getMessage()
+            ));
         }
     }
+    private User registerOrUpdateGoogleUser(GoogleUserInfo googleUserInfo) {
+        Map<String, Object> oauthAttributes = Map.of(
+                "sub", googleUserInfo.getId(),
+                "email", googleUserInfo.getEmail(),
+                "name", googleUserInfo.getName(),
+                "picture", googleUserInfo.getPicture()
+        );
 
+        OAuth2User oauthUser = new DefaultOAuth2User(
+                Collections.emptySet(),
+                oauthAttributes,
+                "email"
+        );
 
+        User user = userService.registerOrLoginGoogleUser(oauthUser);
+
+        if(user.getGoogleId() == null) {
+            user.setGoogleId(googleUserInfo.getId());
+            user = userRepository.save(user);
+        }
+
+        return user;
+    }
+
+    private Map<String, Object> createAuthResponse(String token, User user) {
+        return Map.of(
+                "token", token,
+                "user", Map.of(
+                        "id", user.getId(),
+                        "name", user.getName(),
+                        "email", user.getEmail(),
+                        "role", user.getRole().name(),
+                        "photo", user.getFoto(),
+                        "isGoogleUser", user.getGoogleId() != null,
+                        "hasPassword", user.getSenha() != null
+                )
+        );
+    }
     @GetMapping("/login-success")
     public ResponseEntity<String> loginSuccess(OAuth2AuthenticationToken oauthToken) {
         if (oauthToken == null) {

@@ -1,5 +1,6 @@
 package br.com.project.music.business.dtos;
 
+import br.com.project.music.business.entities.User;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -14,15 +15,15 @@ public class AuthResponse {
     private Long userId;
     private String email;
     private String name;
-    private String userType;
+    private User.Role role;
     private String errorMessage;
 
-    public AuthResponse(String token, Long userId, String name, String email, String userType) {
+    public AuthResponse(String token, Long userId, String name, String email, User.Role role) {
         this.token = token;
         this.userId = userId;
         this.name = name;
         this.email = email;
-        this.userType = userType;
+        this.role = role;
     }
     public AuthResponse(String errorMessage) {
         this.errorMessage = errorMessage;

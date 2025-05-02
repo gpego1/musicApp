@@ -74,13 +74,15 @@ public class AuthServiceImpl implements AuthService {
                 .compact();
     }
     public GoogleUserInfo verifyGoogleToken(String idToken) {
+        if (idToken == null || idToken.length() < 100) {
+            throw new IllegalArgumentException("Invalid token format");
+        }
         try {
             GoogleIdTokenVerifier verifier = new GoogleIdTokenVerifier.Builder(
                     new NetHttpTransport(),
                     new GsonFactory())
                     .setAudience(Collections.singletonList(googleClientId))
                     .build();
-
             GoogleIdToken googleIdToken = verifier.verify(idToken);
             if (googleIdToken != null) {
                 GoogleIdToken.Payload payload = googleIdToken.getPayload();
