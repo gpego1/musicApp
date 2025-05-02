@@ -3,9 +3,10 @@ import br.com.project.music.business.dtos.UserDTO;
 import br.com.project.music.business.entities.Musico;
 import br.com.project.music.business.entities.User;
 import br.com.project.music.business.repositories.UserRepository;
+import br.com.project.music.exceptions.OptimisticLockException;
 import br.com.project.music.services.UserService;
 import jakarta.persistence.EntityNotFoundException;
-import jakarta.persistence.OptimisticLockException;
+
 import org.hibernate.StaleObjectStateException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -99,31 +100,46 @@ public class UserServiceImpl implements UserService {
                 .credentialsExpired(false)
                 .build();
     }
-
     @Override
     @Transactional
     public UserDTO updateUser(Long id, UserDTO userDTO) {
         User existingUser = userRepository.findById(id)
                 .orElseThrow(() -> new EntityNotFoundException("User not found"));
-        try {
-            if (userDTO.getName() != null && !userDTO.getName().equals(existingUser.getName())) {
-                existingUser.setName(userDTO.getName());
+
+        if (userDTO.getName() != null) {
+            existingUser.setName(userDTO.getName());
+        }
+        if (userDTO.getEmail() != null) {
+            existingUser.setEmail(userDTO.getEmail());
+        }
+        if (userDTO.getSenha() != null) {
+            existingUser.setSenha(passwordEncoder.encode(userDTO.getSenha()));
+        }
+
+        if (userDTO.getRole() != null && !userDTO.getRole().equals(existingUser.getRole())) {
+            validateRoleChange(existingUser.getRole(), userDTO.getRole());
+            existingUser.setRole(userDTO.getRole());
+
+
+            if (userDTO.getRole() == User.Role.ARTISTA && existingUser.getMusico() == null) {
+                Musico musico = new Musico();
+                musico.setUsuario(existingUser);
+                existingUser.setMusico(musico);
             }
-            if (userDTO.getEmail() != null && !userDTO.getEmail().equals(existingUser.getEmail())) {
-                existingUser.setEmail(userDTO.getEmail());
-            }
-            if (userDTO.getSenha() != null && !passwordEncoder.matches(userDTO.getSenha(), existingUser.getSenha())) {
-                existingUser.setSenha(passwordEncoder.encode(userDTO.getSenha()));
-            }
-            if (userDTO.getDataCriacao() != null && !userDTO.getDataCriacao().equals(existingUser.getDataCriacao())) {
-                existingUser.setDataCriacao(userDTO.getDataCriacao());
-            }
-            if (userDTO.getRole() != null && !userDTO.getRole().equals(existingUser.getRole())) {
-                existingUser.setRole(userDTO.getRole());
-            }
-            return convertToDTO(userRepository.save(existingUser));
-        } catch (StaleObjectStateException ex) {
-            throw new OptimisticLockException("The data you were trying to update has been modified by another user. Please refresh the data and try again.");
+        }
+
+        User updatedUser = userRepository.save(existingUser);
+        return convertToDTO(updatedUser);
+    }
+    private void validateRoleChange(User.Role currentRole, User.Role newRole) {
+        if (currentRole != User.Role.CLIENT) {
+            throw new IllegalStateException("Only CLIENT users can change their role");
+        }
+        if (newRole == User.Role.CLIENT) {
+            throw new IllegalArgumentException("Cannot change to same role");
+        }
+        if (newRole != User.Role.HOST && newRole != User.Role.ARTISTA) {
+            throw new IllegalArgumentException("Invalid target role");
         }
     }
 
@@ -190,7 +206,7 @@ public class UserServiceImpl implements UserService {
     }
 
     private UserDTO convertToDTO(User user) {
-       UserDTO dto = new UserDTO(
+        return new UserDTO(
                 user.getId(),
                 user.getName(),
                 user.getEmail(),
@@ -200,6 +216,5 @@ public class UserServiceImpl implements UserService {
                 user.getMusico() != null ? user.getMusico().getNomeArtistico() : null,
                 user.getMusico() != null ? user.getMusico().getRedesSociais() : null
         );
-        return dto;
     }
 }

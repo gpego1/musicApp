@@ -54,7 +54,7 @@ public class SecurityConfig {
                         .requestMatchers("/genres").permitAll()
                         .requestMatchers("/eventos/**").permitAll()
                         .requestMatchers("/places").permitAll()
-                        .requestMatchers("/users").permitAll()
+                        .requestMatchers("/users/**").permitAll()
                         .requestMatchers("/reservas").permitAll()
                         .anyRequest().authenticated()
                 )
