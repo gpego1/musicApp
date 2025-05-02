@@ -27,6 +27,7 @@ import org.springframework.web.filter.CorsFilter;
 
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.List;
 
 @Configuration
 @EnableWebSecurity
@@ -42,14 +43,16 @@ public class SecurityConfig {
         http
                 .csrf(AbstractHttpConfigurer::disable)
                 .authorizeHttpRequests(auth -> auth
+                        .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
                         .requestMatchers("/auth/**").permitAll()
-                        .requestMatchers("/auth/login").permitAll() // Allow direct login endpoint
+                        .requestMatchers("/auth/login").permitAll()
                         .requestMatchers("/oauth2/**").permitAll()
+                        .requestMatchers("/oauth2/authorization/google").permitAll()
                         .requestMatchers("/login/oauth2/code/google").permitAll()
                         .requestMatchers(HttpMethod.OPTIONS, "/auth/google-login").permitAll()
                         .requestMatchers(HttpMethod.POST, "/auth/google-login").permitAll()
                         .requestMatchers("/genres").permitAll()
-                        .requestMatchers("/eventos").permitAll()
+                        .requestMatchers("/eventos/**").permitAll()
                         .requestMatchers("/places").permitAll()
                         .requestMatchers("/users").permitAll()
                         .requestMatchers("/reservas").permitAll()
@@ -62,23 +65,12 @@ public class SecurityConfig {
                         .failureHandler(authenticationFailureHandler())
                 )
                 .authenticationProvider(authenticationProvider())
-                .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class)
-                .addFilterBefore(corsFilter(), UsernamePasswordAuthenticationFilter.class); // Ensure CorsFilter is before JwtAuthFilter
+                .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class);
+
 
         return http.build();
     }
 
-    @Bean
-    public CorsFilter corsFilter() {
-        CorsConfiguration configuration = new CorsConfiguration();
-        configuration.setAllowedOrigins(Collections.singletonList("http://localhost:5173"));
-        configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS"));
-        configuration.setAllowedHeaders(Collections.singletonList("*"));
-        configuration.setAllowCredentials(true);
-        UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
-        source.registerCorsConfiguration("/**", configuration);
-        return new CorsFilter(source);
-    }
 
     @Bean
     public AuthenticationSuccessHandler oAuth2AuthenticationSuccessHandler() {

@@ -1,5 +1,6 @@
 package br.com.project.music.business.entities;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -20,6 +21,7 @@ public class Event {
     @Column(name = "nome_evento", nullable = false)
     private String nomeEvento;
 
+    @JsonFormat(pattern = "dd/MM/yyyy HH:mm:ss")
     @Column(name = "data_hora", nullable = false)
     private LocalDateTime dataHora;
 

@@ -108,7 +108,7 @@ public class AuthController {
                 .body("Falha na autenticação com Google");
     }
     @GetMapping("/user/me")
-    public ResponseEntity<Map<String, String>> getUserDetails(HttpServletRequest request) {
+    public ResponseEntity<Map<String, Object>> getUserDetails(HttpServletRequest request) {
         String authorizationHeader = request.getHeader("Authorization");
         if (authorizationHeader != null && authorizationHeader.startsWith("Bearer ")) {
             String token = authorizationHeader.substring(7);
@@ -116,7 +116,7 @@ public class AuthController {
             if (userEmail != null) {
                 User user = userService.getUserByEmail(userEmail).orElse(null);
                 if (user != null) {
-                    return ResponseEntity.ok(Map.of("nome", user.getName(), "role", user.getRole().name()));
+                    return ResponseEntity.ok(Map.of("id", user.getId(), "nome", user.getName(), "role", user.getRole().name()));
                 }
             }
         }

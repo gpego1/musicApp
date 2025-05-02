@@ -86,6 +86,9 @@ public class UserServiceImpl implements UserService {
     public UserDetails loadUserByUsername(String email) throws UsernameNotFoundException {
         User user = userRepository.findByEmail(email)
                 .orElseThrow(() -> new UsernameNotFoundException("Usuario nao foi encotrado " + email));
+
+        System.out.println("Carregando usuário por email: " + email + ", ID: " + user.getId());
+
         return org.springframework.security.core.userdetails.User
                 .withUsername(user.getEmail())
                 .password(user.getSenha())

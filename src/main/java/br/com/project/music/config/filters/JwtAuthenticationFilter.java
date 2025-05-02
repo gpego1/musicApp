@@ -1,4 +1,5 @@
 package br.com.project.music.config.filters;
+
 import br.com.project.music.services.JwtService;
 import br.com.project.music.services.UserService;
 import jakarta.servlet.FilterChain;
@@ -15,6 +16,7 @@ import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.web.authentication.WebAuthenticationDetailsSource;
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
+
 import java.io.IOException;
 
 @Component
@@ -45,14 +47,15 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
         try {
             final String jwt = authHeader.substring(BEARER_PREFIX.length()).trim();
-            logger.info("Extracted JWT from Header: {}", jwt); // Log the extracted JWT
+            logger.info("Extracted JWT from Header: {}", jwt);
 
             final String userEmail = jwtService.extractUsername(jwt);
 
             if (userEmail != null && SecurityContextHolder.getContext().getAuthentication() == null) {
                 UserDetails userDetails = this.userService.loadUserByUsername(userEmail);
+                logger.info("UserDetails loaded for user: {}", userDetails.getUsername());
 
-                if (jwtService.validateToken(jwt, userEmail)) {
+                if (jwtService.validateToken(jwt, userDetails.getUsername())) {
                     UsernamePasswordAuthenticationToken authToken = new UsernamePasswordAuthenticationToken(
                             userDetails,
                             null,
@@ -62,6 +65,9 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                             new WebAuthenticationDetailsSource().buildDetails(request)
                     );
                     SecurityContextHolder.getContext().setAuthentication(authToken);
+                    logger.info("User authentication set in SecurityContextHolder for user: {}", userDetails.getUsername()); // Log successful authentication
+                } else {
+                    logger.warn("JWT validation failed for user: {}", userDetails.getUsername());
                 }
             }
 

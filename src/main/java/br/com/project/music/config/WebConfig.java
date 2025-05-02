@@ -9,42 +9,10 @@ public class WebConfig implements WebMvcConfigurer {
 
     @Override
     public void addCorsMappings(CorsRegistry registry) {
-        registry.addMapping("/auth/**")
+        registry.addMapping("/**")
                 .allowedOrigins("http://localhost:5173")
-                .allowedMethods("GET", "POST", "OPTIONS")
+                .allowedMethods("GET", "POST", "OPTIONS", "PUT", "DELETE")
                 .allowedHeaders("*")
                 .allowCredentials(true);
-
-        registry.addMapping("/oauth2/authorization/google")
-                .allowedOrigins("http://localhost:5173")
-                .allowedMethods("GET", "OPTIONS")
-                .allowedHeaders("*")
-                .allowCredentials(true);
-
-        registry.addMapping("/login/oauth2/code/google")
-                .allowedOrigins("http://localhost:5173")
-                .allowedMethods("GET", "POST", "OPTIONS")
-                .allowedHeaders("*")
-                .allowCredentials(true);
-
-        registry.addMapping("/login-success")
-                .allowedOrigins("http://localhost:5173")
-                .allowedMethods("GET", "POST", "OPTIONS")
-                .allowedHeaders("*")
-                .allowCredentials(true);
-
-        registry.addMapping("/login-failure")
-                .allowedOrigins("http://localhost:5173")
-                .allowedMethods("GET", "POST", "OPTIONS")
-                .allowedHeaders("*")
-                .allowCredentials(true);
-
-        registry.addMapping("/change-password")
-                .allowedOrigins("http://localhost:5173")
-                .allowedMethods("GET", "POST", "OPTIONS")
-                .allowedHeaders("*")
-                .allowCredentials(true);
-
     }
-
 }

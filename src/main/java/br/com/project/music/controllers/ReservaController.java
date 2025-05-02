@@ -1,12 +1,7 @@
+// ReservaController.java
 package br.com.project.music.controllers;
 
 import br.com.project.music.business.dtos.ReservaDTO;
-import br.com.project.music.business.dtos.EventDTO;
-import br.com.project.music.business.dtos.UserDTO;
-import br.com.project.music.business.entities.Event;
-import br.com.project.music.business.entities.User;
-import br.com.project.music.business.repositories.EventRepository;
-import br.com.project.music.business.repositories.UserRepository;
 import br.com.project.music.services.ReservaService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -23,33 +18,14 @@ public class ReservaController {
     @Autowired
     private ReservaService reservaService;
 
-    @Autowired
-    private UserRepository userRepository; // Adicione o UserRepository
-
-    @Autowired
-    private EventRepository eventRepository; // Adicione o EventRepository
-
     @PostMapping
-    public ResponseEntity<?> createReserva(@RequestBody ReservaDTO reservaDTO) {
-        // Buscar o User completo pelo ID diretamente do repositório
-        Optional<User> userOptional = userRepository.findById(reservaDTO.getUsuario().getId());
-        if (!userOptional.isPresent()) {
-            return new ResponseEntity<>("Usuário não encontrado", HttpStatus.BAD_REQUEST);
-        }
-        User user = userOptional.get();
-        reservaDTO.setUsuario(user);
-        // Se o googleId do User encontrado for null, ele permanecerá null no reservaDTO
-
-        // Buscar o Event completo pelo ID diretamente do repositório
-        Optional<Event> eventOptional = eventRepository.findById(reservaDTO.getEvento().getIdEvento());
-        if (!eventOptional.isPresent()) {
-            return new ResponseEntity<>("Evento não encontrado", HttpStatus.BAD_REQUEST);
-        }
-        Event event = eventOptional.get();
-        reservaDTO.setEvento(event);
-
+    public ResponseEntity<ReservaDTO> createReserva(@RequestBody ReservaDTO reservaDTO) {
         ReservaDTO createdReserva = reservaService.createReserva(reservaDTO);
-        return new ResponseEntity<>(createdReserva, HttpStatus.CREATED);
+        if (createdReserva != null) {
+            return new ResponseEntity<>(createdReserva, HttpStatus.CREATED);
+        } else {
+            return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+        }
     }
 
     @GetMapping
@@ -66,24 +42,7 @@ public class ReservaController {
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<?> updateReserva(@PathVariable Long id, @RequestBody ReservaDTO reservaDTO) {
-        // Buscar o User completo pelo ID diretamente do repositório
-        Optional<User> userOptional = userRepository.findById(reservaDTO.getUsuario().getId());
-        if (!userOptional.isPresent()) {
-            return new ResponseEntity<>("Usuário não encontrado", HttpStatus.BAD_REQUEST);
-        }
-        User user = userOptional.get();
-        reservaDTO.setUsuario(user);
-        // Se o googleId do User encontrado for null, ele permanecerá null no reservaDTO
-
-        // Buscar o Event completo pelo ID diretamente do repositório
-        Optional<Event> eventOptional = eventRepository.findById(reservaDTO.getEvento().getIdEvento());
-        if (!eventOptional.isPresent()) {
-            return new ResponseEntity<>("Evento não encontrado", HttpStatus.BAD_REQUEST);
-        }
-        Event event = eventOptional.get();
-        reservaDTO.setEvento(event);
-
+    public ResponseEntity<ReservaDTO> updateReserva(@PathVariable Long id, @RequestBody ReservaDTO reservaDTO) {
         ReservaDTO updatedReserva = reservaService.updateReserva(id, reservaDTO);
         if (updatedReserva != null) {
             return new ResponseEntity<>(updatedReserva, HttpStatus.OK);
@@ -93,8 +52,38 @@ public class ReservaController {
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<Void> deleteReserva(@PathVariable Long id) {
+    public ResponseEntity<Void> deleteReservaById(@PathVariable Long id) {
         reservaService.deleteReservaById(id);
         return new ResponseEntity<>(HttpStatus.NO_CONTENT);
+    }
+
+    @GetMapping("/usuario/{userId}")
+    public ResponseEntity<List<ReservaDTO>> getReservasByUsuario(@PathVariable Long userId) {
+        List<ReservaDTO> reservas = reservaService.getReservasByUsuario(userId);
+        if (reservas != null) {
+            return new ResponseEntity<>(reservas, HttpStatus.OK);
+        } else {
+            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+        }
+    }
+
+    @GetMapping("/evento/{eventoId}")
+    public ResponseEntity<List<ReservaDTO>> getReservasByEvento(@PathVariable Long eventoId) {
+        List<ReservaDTO> reservas = reservaService.getReservasByEvento(eventoId);
+        if (reservas != null) {
+            return new ResponseEntity<>(reservas, HttpStatus.OK);
+        } else {
+            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+        }
+    }
+
+    @GetMapping("/usuario/{userId}/evento/{eventoId}")
+    public ResponseEntity<List<ReservaDTO>> getReservasByUserAndEvento(@PathVariable Long userId, @PathVariable Long eventoId) {
+        List<ReservaDTO> reservas = reservaService.getReservasByUserAndEvent(userId, eventoId);
+        if (reservas != null) {
+            return new ResponseEntity<>(reservas, HttpStatus.OK);
+        } else {
+            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+        }
     }
 }
