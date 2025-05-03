@@ -1,6 +1,7 @@
 package br.com.project.music.business.entities;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -34,7 +35,7 @@ public class User {
     private Musico musico;
 
     @OneToMany(mappedBy = "usuario")
-    @JsonIgnore
+    @JsonManagedReference
     private List<Notification> notifications;
 
     public enum Role{

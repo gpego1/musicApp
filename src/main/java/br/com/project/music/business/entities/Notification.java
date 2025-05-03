@@ -1,5 +1,6 @@
 package br.com.project.music.business.entities;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.*;
@@ -18,7 +19,7 @@ public class Notification {
 
     @ManyToOne
     @JoinColumn(name = "id_usuario")
-    @JsonIgnore
+    @JsonBackReference
     private User usuario;
 
     @Column(nullable = false)

@@ -59,6 +59,7 @@ public class SecurityConfig {
                         .requestMatchers("/places").permitAll()
                         .requestMatchers("/users/**").permitAll()
                         .requestMatchers("/reservas").permitAll()
+                        .requestMatchers("/notifications").permitAll()
                         .requestMatchers("/notifications/**").permitAll()
                         .anyRequest().authenticated()
                 )

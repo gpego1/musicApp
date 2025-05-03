@@ -7,6 +7,7 @@ import br.com.project.music.business.repositories.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
 import java.util.Optional;
 
 @Service
@@ -17,6 +18,8 @@ public class NotificationService {
 
     @Autowired
     private UserRepository userRepository;
+
+    public List<Notification> getAllNotifications() {return notificationRepository.findAll();}
 
     public Notification createNotification(Long usuarioId, String mensagem) {
         Optional<User> userOptional = userRepository.findById(usuarioId);

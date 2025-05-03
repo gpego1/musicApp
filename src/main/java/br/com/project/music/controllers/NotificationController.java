@@ -9,6 +9,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
 import java.util.Optional;
 
 @RestController
@@ -17,6 +18,13 @@ public class NotificationController {
 
     @Autowired
     private NotificationService notificationService;
+
+
+  @GetMapping
+    public ResponseEntity<List<Notification>> getAllNotifications() {
+        List<Notification> notifications = notificationService.getAllNotifications();
+        return new ResponseEntity<>(notifications, HttpStatus.OK);
+    }
 
     @PostMapping
     public ResponseEntity<Notification> createNotification(@RequestBody NotificationRequest request) {
