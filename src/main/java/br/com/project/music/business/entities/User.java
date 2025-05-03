@@ -1,9 +1,11 @@
 package br.com.project.music.business.entities;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.*;
 
 import java.sql.Timestamp;
+import java.util.List;
 
 @Entity
 @Table(name="usuario")
@@ -30,6 +32,10 @@ public class User {
 
     @OneToOne(mappedBy = "usuario", cascade = CascadeType.ALL, orphanRemoval = true)
     private Musico musico;
+
+    @OneToMany(mappedBy = "usuario")
+    @JsonIgnore
+    private List<Notification> notifications;
 
     public enum Role{
         CLIENT,
