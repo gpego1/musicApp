@@ -20,6 +20,6 @@ public class Notification {
     @Column(nullable = false)
     private String mensagem;
 
-    @Column(nullable = false)
+    @Column(nullable = true)
     private boolean lida = false;
 }
