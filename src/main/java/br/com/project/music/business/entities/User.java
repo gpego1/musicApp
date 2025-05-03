@@ -36,6 +36,7 @@ public class User {
 
     @OneToMany(mappedBy = "usuario")
     @JsonManagedReference
+    @JsonIgnore
     private List<Notification> notifications;
 
     public enum Role{
