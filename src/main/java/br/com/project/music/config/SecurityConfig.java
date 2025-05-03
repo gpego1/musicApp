@@ -49,7 +49,7 @@ public class SecurityConfig {
                         .requestMatchers("/oauth2/**").permitAll()
                         .requestMatchers("/oauth2/authorization/google/**").permitAll()
                         .requestMatchers("/login/oauth2/code/google").permitAll()
-                        .requestMatchers("/auth/users/me/**").permitAll()
+                        .requestMatchers("/auth/user/me").permitAll()
                         .requestMatchers(HttpMethod.OPTIONS, "/auth/google-login").permitAll()
                         .requestMatchers(HttpMethod.POST, "/auth/google-login").permitAll()
                         .requestMatchers("/genres").permitAll()
