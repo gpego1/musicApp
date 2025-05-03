@@ -1,5 +1,6 @@
 package br.com.project.music.controllers;
 
+import br.com.project.music.business.dtos.AvaliacaoRequestDTO;
 import br.com.project.music.business.entities.Avaliacao;
 import br.com.project.music.services.AvaliacaoService;
 import jakarta.validation.Valid;
@@ -20,16 +21,23 @@ public class AvaliacaoController {
     public AvaliacaoController(AvaliacaoService avaliacaoService) {
         this.avaliacaoService = avaliacaoService;
     }
+    @GetMapping
+    public ResponseEntity<List<Avaliacao>> getAllAvaliacoes() {
+        List<Avaliacao> avaliacoes = avaliacaoService.getAllAvaliacoes();
+        return new ResponseEntity<>(avaliacoes, HttpStatus.OK);
+    }
 
     @PostMapping
-    public ResponseEntity<Avaliacao> criarAvaliacao(@RequestParam Long usuarioId,
-                                                    @RequestParam Long eventoId,
-                                                    @RequestParam @Valid int nota,
-                                                    @RequestParam String mensagem) {
+    public ResponseEntity<Avaliacao> criarAvaliacao(@RequestBody @Valid AvaliacaoRequestDTO avaliacaoRequest) {
         try {
-            Avaliacao avaliacao = avaliacaoService.criarAvaliacao(usuarioId, eventoId, nota, mensagem);
+            Avaliacao avaliacao = avaliacaoService.criarAvaliacao(
+                    avaliacaoRequest.getUsuarioId(),
+                    avaliacaoRequest.getEventoId(),
+                    avaliacaoRequest.getNota(),
+                    avaliacaoRequest.getMensagem()
+            );
             return new ResponseEntity<>(avaliacao, HttpStatus.CREATED);
-        } catch (Exception e) {
+        } catch (IllegalArgumentException e) {
             return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
         }
     }

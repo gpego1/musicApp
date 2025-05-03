@@ -55,6 +55,7 @@ public class SecurityConfig {
                         .requestMatchers("/genres").permitAll()
                         .requestMatchers("/musicos").permitAll()
                         .requestMatchers("/avaliacoes").permitAll()
+                        .requestMatchers("/avaliacoes/**").permitAll()
                         .requestMatchers("/eventos/**").permitAll()
                         .requestMatchers("/places").permitAll()
                         .requestMatchers("/users/**").permitAll()

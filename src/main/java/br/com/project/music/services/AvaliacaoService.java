@@ -25,6 +25,7 @@ public class AvaliacaoService {
         this.userRepository = userRepository;
         this.eventRepository = eventRepository;
     }
+    public List<Avaliacao> getAllAvaliacoes() {return avaliacaoRepository.findAll();}
 
     public Avaliacao criarAvaliacao(Long usuarioId, Long eventoId, int nota, String mensagem) {
         User usuario = userRepository.findById(usuarioId)
