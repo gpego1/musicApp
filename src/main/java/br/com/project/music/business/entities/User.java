@@ -34,6 +34,7 @@ public class User {
     private String foto;
 
     @OneToOne(mappedBy = "usuario", cascade = CascadeType.ALL, orphanRemoval = true)
+    @JsonIgnore
     private Musico musico;
 
     @OneToMany(mappedBy = "usuario")
