@@ -1,63 +1,60 @@
 package br.com.project.music.business.entities;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.*;
 
 import java.io.Serializable;
 @Entity
 @Table(name="contrato")
-@IdClass(ContratoId.class)
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
+@EqualsAndHashCode(onlyExplicitlyIncluded = true)
 public class Contrato {
-    @Id
-    @Column(name = "id_musico")
-    private Long idMusico;
+    @EmbeddedId
+    @EqualsAndHashCode.Include
+    private ContratoId idContrato;
 
-    @Id
-    @Column(name = "id_reserva")
-    private Long idReserva;
+    @Column(name = "valor")
+    private Double valor;
+
+    @Column(name = "detalhes")
+    private String detalhes;
+
+    @ManyToOne
+    @JoinColumn(name = "id_evento", insertable = false, updatable = false)
+    @JsonIgnore
+    private Event evento;
 
     @ManyToOne
     @JoinColumn(name = "id_musico", insertable = false, updatable = false)
+    @JsonIgnore
     private Musico musico;
 
-    @ManyToOne
-    @JoinColumn(name = "id_reserva", insertable = false, updatable = false)
-    private Reserva reserva;
+    @Embeddable
+    @Data
+    @NoArgsConstructor
+    @AllArgsConstructor
+    @EqualsAndHashCode
+    public static class ContratoId implements Serializable{
+        @ManyToOne
+        @JoinColumn(name = "id_evento")
+        private Event evento;
+
+        @ManyToOne
+        @JoinColumn(name = "id_musico")
+        private Musico musico;
+
+    }
+    public Contrato(ContratoId idContrato, Double valor, String detalhes) {
+        this.idContrato = idContrato;
+        this.valor = valor;
+        this.detalhes = detalhes;
+    }
 }
 
-    class ContratoId implements Serializable {
-
-        private Long idMusico;
-        private Long idReserva;
-
-        public ContratoId() {
-        }
-
-        public ContratoId(Long idMusico, Long idReserva) {
-            this.idMusico = idMusico;
-            this.idReserva = idReserva;
-        }
-
-        @Override
-        public boolean equals(Object o) {
-            if (this == o) return true;
-            if (o == null || getClass() != o.getClass()) return false;
-
-            ContratoId that = (ContratoId) o;
-
-            if (idMusico != null ? !idMusico.equals(that.idMusico) : that.idMusico != null) return false;
-            return idReserva != null ? idReserva.equals(that.idReserva) : that.idReserva == null;
-        }
-
-        @Override
-        public int hashCode() {
-            int result = idMusico != null ? idMusico.hashCode() : 0;
-            result = 31 * result + (idReserva != null ? idReserva.hashCode() : 0);
-            return result;
-        }
 
 
 
-}
+
+
