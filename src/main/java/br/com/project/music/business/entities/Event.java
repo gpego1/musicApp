@@ -1,10 +1,14 @@
 package br.com.project.music.business.entities;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.fasterxml.jackson.annotation.JsonFormat;
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.persistence.*;
 import lombok.*;
 
 import java.time.LocalDateTime;
+import java.util.List;
 
 @Entity
 @Table(name="evento")
@@ -34,5 +38,9 @@ public class Event {
     @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "id_local_evento")
     private Place localEvento;
+
+    @OneToMany(mappedBy = "evento")
+    @JsonIgnore
+    private List<Reserva> reservas;
 
 }
