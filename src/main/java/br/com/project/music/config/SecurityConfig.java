@@ -64,6 +64,7 @@ public class SecurityConfig {
                         .requestMatchers("/notifications/**").permitAll()
                         .requestMatchers("/contratos").permitAll()
                         .requestMatchers("/contratos/**").permitAll()
+                        .requestMatchers("/escalas").permitAll()
                         .anyRequest().authenticated()
                 )
                 .sessionManagement(sess -> sess.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
