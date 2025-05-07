@@ -1,30 +1,34 @@
 package br.com.project.music.business.entities;
+
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
-import lombok.*;
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.EqualsAndHashCode;
+import lombok.NoArgsConstructor;
 
 import java.io.Serializable;
+
 @Entity
-@Table(name="contrato")
+@Table(name = "escala")
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
 @EqualsAndHashCode(onlyExplicitlyIncluded = true)
-public class Contrato {
+public class Escala {
     @EmbeddedId
     @EqualsAndHashCode.Include
-    private ContratoId idContrato;
-
-    @Column(name = "valor")
-    private Double valor;
-
-    @Column(name = "detalhes")
-    private String detalhes;
+    private EscalaId idEscala;
 
     @ManyToOne
     @JoinColumn(name = "id_evento", insertable = false, updatable = false)
     @JsonIgnore
     private Event evento;
+
+    @ManyToOne
+    @JoinColumn(name = "id_genero_musical", insertable = false, updatable = false)
+    @JsonIgnore
+    private Genre genero;
 
     @ManyToOne
     @JoinColumn(name = "id_musico", insertable = false, updatable = false)
@@ -36,25 +40,17 @@ public class Contrato {
     @NoArgsConstructor
     @AllArgsConstructor
     @EqualsAndHashCode
-    public static class ContratoId implements Serializable{
+    public static class EscalaId implements Serializable {
         @ManyToOne
-        @JoinColumn(name = "id_evento")
+        @JoinColumn(name = "id_evento", insertable = false, updatable = false)
         private Event evento;
 
         @ManyToOne
-        @JoinColumn(name = "id_musico")
-        private Musico musico;
-
+        @JoinColumn(name = "id_genero_musical", insertable = false, updatable = false)
+        private Genre genero;
     }
-    public Contrato(ContratoId idContrato, Double valor, String detalhes) {
-        this.idContrato = idContrato;
-        this.valor = valor;
-        this.detalhes = detalhes;
+    public Escala(EscalaId idEscala, Musico musico) {
+        this.idEscala = idEscala;
+        this.musico = musico;
     }
 }
-
-
-
-
-
-

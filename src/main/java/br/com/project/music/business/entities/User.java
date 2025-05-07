@@ -1,6 +1,8 @@
 package br.com.project.music.business.entities;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
 import lombok.*;
@@ -32,12 +34,17 @@ public class User {
     private String foto;
 
     @OneToOne(mappedBy = "usuario", cascade = CascadeType.ALL, orphanRemoval = true)
+    @JsonIgnore
     private Musico musico;
 
     @OneToMany(mappedBy = "usuario")
     @JsonManagedReference
     @JsonIgnore
     private List<Notification> notifications;
+
+    @OneToMany(mappedBy = "usuario")
+    @JsonIgnore
+    private List<Reserva> reservas;
 
     public enum Role{
         CLIENT,
