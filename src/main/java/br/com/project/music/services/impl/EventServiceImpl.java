@@ -2,8 +2,10 @@ package br.com.project.music.services.impl;
 
 import br.com.project.music.business.dtos.EventDTO;
 import br.com.project.music.business.entities.Event;
+import br.com.project.music.business.entities.Genre;
 import br.com.project.music.business.entities.User;
 import br.com.project.music.business.repositories.EventRepository;
+import br.com.project.music.business.repositories.GenresRepository;
 import br.com.project.music.business.repositories.UserRepository;
 import br.com.project.music.services.EventService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -22,6 +24,8 @@ public class EventServiceImpl implements EventService {
     private EventRepository eventRepository;
     @Autowired
     private UserRepository userRepository;
+    @Autowired
+    private GenresRepository genresRepository;
 
     @Override
     @Transactional
@@ -76,6 +80,16 @@ public class EventServiceImpl implements EventService {
         if(host.isPresent()) {
             User createdHost = host.get();
             return eventRepository.findByHost(createdHost);
+        } else {
+            return Collections.emptyList();
+        }
+    }
+
+    public List<Event> getEventsByGenreId(Long genreId) {
+        Optional<Genre> genre = genresRepository.findById(genreId);
+        if(genre.isPresent()) {
+            Genre createdGenre = genre.get();
+            return eventRepository.findByGeneroMusical(createdGenre);
         } else {
             return Collections.emptyList();
         }

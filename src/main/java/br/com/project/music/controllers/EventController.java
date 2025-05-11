@@ -45,6 +45,14 @@ public class EventController {
         }
         return ResponseEntity.ok(events);
     }
+    @GetMapping("/genre/{genreId}")
+    public ResponseEntity<List<Event>> gentEventsByGenre(@PathVariable Long genreId){
+        List<Event> events = eventService.getEventsByGenreId(genreId);
+        if(events.isEmpty()){
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(null);
+        }
+        return ResponseEntity.ok(events);
+    }
 
     @PostMapping
     public ResponseEntity<EventDTO> createEvent(@RequestBody EventDTO eventDTO) {
