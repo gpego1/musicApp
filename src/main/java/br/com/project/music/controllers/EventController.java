@@ -96,6 +96,14 @@ public class EventController {
         }
         return ResponseEntity.ok(eventsOnDate);
     }
+    @GetMapping("/reservas/{reservaId}")
+    public ResponseEntity<List<Event>> getEventsByReservaId(@PathVariable Long reservaId){
+        List<Event> events = eventService.getEventByReservaId(reservaId);
+        if(events.isEmpty()){
+            return ResponseEntity.notFound().build();
+        }
+        return ResponseEntity.ok(events);
+    }
     @PostMapping
     public ResponseEntity<EventDTO> createEvent(@RequestBody EventDTO eventDTO) {
         EventDTO savedEvent = eventService.createEvent(eventDTO);

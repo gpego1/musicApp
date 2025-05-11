@@ -3,6 +3,7 @@ package br.com.project.music.services.impl;
 import br.com.project.music.business.dtos.EventDTO;
 import br.com.project.music.business.entities.Event;
 import br.com.project.music.business.entities.Genre;
+import br.com.project.music.business.entities.Reserva;
 import br.com.project.music.business.entities.User;
 import br.com.project.music.business.repositories.EventRepository;
 import br.com.project.music.business.repositories.GenresRepository;
@@ -127,6 +128,21 @@ public class EventServiceImpl implements EventService {
     @Override
     public List<Event> getEventsOnDate(LocalDateTime date){
         return eventRepository.findByData(date);
+    }
+
+    @Override
+    public List<Event> getEventByReserva(Reserva reserva) {
+        return eventRepository.findByReservas(reserva);
+    }
+
+    @Override
+    public List<Event> findEventsWithReservations(){
+        return eventRepository.findByHasReservas();
+    }
+
+    @Override
+    public List<Event> getEventByReservaId(Long reservaId){
+        return eventRepository.findByReservas_IdReserva(reservaId);
     }
 
     private EventDTO convertToDTO(Event event) {

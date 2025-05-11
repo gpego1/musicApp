@@ -2,6 +2,7 @@ package br.com.project.music.services;
 
 import br.com.project.music.business.dtos.EventDTO;
 import br.com.project.music.business.entities.Event;
+import br.com.project.music.business.entities.Reserva;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -20,4 +21,7 @@ public interface EventService {
     List<Event> getPastEvents();
     String getEventStatus(Event event);
     List<Event> getEventsOnDate(LocalDateTime date);
+    List<Event> getEventByReserva(Reserva reserva);
+    List<Event> findEventsWithReservations();
+    List<Event> getEventByReservaId(Long reservaId);
 }

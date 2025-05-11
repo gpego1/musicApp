@@ -2,6 +2,7 @@ package br.com.project.music.business.repositories;
 
 import br.com.project.music.business.entities.Event;
 import br.com.project.music.business.entities.Genre;
+import br.com.project.music.business.entities.Reserva;
 import br.com.project.music.business.entities.User;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
@@ -24,4 +25,11 @@ public interface EventRepository extends JpaRepository<Event, Long> {
     List<Event> findByDataHoraAfter(LocalDateTime now);
     List<Event> findByDataHoraBefore(LocalDateTime now);
 
+    List<Event> findByReservas(Reserva reserva);
+
+    @Query("SELECT DISTINCT e FROM Event e JOIN e.reservas r")
+    List<Event> findByHasReservas();
+
+    @Query("SELECT e FROM Event e JOIN e.reservas r WHERE r.idReserva = :reservaId")
+    List<Event> findByReservas_IdReserva(@Param("reservaId") Long reservaId);
 }
