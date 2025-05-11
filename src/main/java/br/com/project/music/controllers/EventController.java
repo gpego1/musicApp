@@ -1,6 +1,7 @@
 package br.com.project.music.controllers;
 
 import br.com.project.music.business.dtos.EventDTO;
+import br.com.project.music.business.entities.Event;
 import br.com.project.music.services.EventService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -34,6 +35,15 @@ public class EventController {
         } else {
             return new ResponseEntity<>(HttpStatus.NOT_FOUND);
         }
+    }
+
+    @GetMapping("/host/{hostId}")
+    public ResponseEntity<List<Event>> getEventsByHost(@PathVariable Long hostId){
+        List<Event> events = eventService.getEventsByHostId(hostId);
+        if(events.isEmpty()) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(null);
+        }
+        return ResponseEntity.ok(events);
     }
 
     @PostMapping

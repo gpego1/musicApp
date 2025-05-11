@@ -43,4 +43,9 @@ public class Event {
     @JsonIgnore
     private List<Reserva> reservas;
 
+    @ManyToOne(fetch = FetchType.EAGER)
+    @JoinColumn(name = "id_usuario_host", nullable = false)
+    @JsonBackReference
+    private User host;
+
 }

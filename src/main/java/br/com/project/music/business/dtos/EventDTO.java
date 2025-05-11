@@ -2,6 +2,7 @@ package br.com.project.music.business.dtos;
 
 import br.com.project.music.business.entities.Genre;
 import br.com.project.music.business.entities.Place;
+import br.com.project.music.business.entities.User;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -18,4 +19,5 @@ public class EventDTO {
     private String descricao;
     private Genre generoMusical;
     private Place localEvento;
+    private User host;
 }

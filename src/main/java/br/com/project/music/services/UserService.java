@@ -6,7 +6,9 @@ import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.oauth2.core.user.OAuth2User;
 import org.springframework.stereotype.Service;
+import org.springframework.web.multipart.MultipartFile;
 
+import java.io.IOException;
 import java.util.List;
 import java.util.Optional;
 
@@ -22,4 +24,5 @@ public interface UserService extends UserDetailsService {
     boolean checkPassword(User user, String currentPassword);
     void changePassword(User user, String newPassword);
     User registerOrLoginGoogleUser(OAuth2User oauthUser);
+    void updateProfileImage(String username, MultipartFile file) throws IOException;
 }

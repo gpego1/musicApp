@@ -1,6 +1,7 @@
 package br.com.project.music.business.repositories;
 
 import br.com.project.music.business.entities.Event;
+import br.com.project.music.business.entities.User;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
@@ -13,4 +14,6 @@ public interface EventRepository extends JpaRepository<Event, Long> {
 
     @Query("SELECT e FROM Event e JOIN FETCH e.generoMusical JOIN FETCH e.localEvento")
     List<Event> findAllWithRelations();
+
+    List<Event> findByHost(User host);
 }

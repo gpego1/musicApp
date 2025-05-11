@@ -30,7 +30,10 @@ public class User {
     @Column(name = "data_criacao", columnDefinition = "TIMESTAMP DEFAULT CURRENT_TIMESTAMP")
     private Timestamp dataCriacao;
 
+    @Column(name = "google_id", nullable = true)
     private String googleId;
+
+    @Column(name = "foto", nullable = true)
     private String foto;
 
     @OneToOne(mappedBy = "usuario", cascade = CascadeType.ALL, orphanRemoval = true)
@@ -45,6 +48,10 @@ public class User {
     @OneToMany(mappedBy = "usuario")
     @JsonIgnore
     private List<Reserva> reservas;
+
+    @OneToMany(mappedBy = "host")
+    @JsonIgnore
+    private List<Event> eventos;
 
     public enum Role{
         CLIENT,
