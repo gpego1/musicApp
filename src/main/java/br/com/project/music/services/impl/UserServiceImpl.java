@@ -15,6 +15,12 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.oauth2.core.user.OAuth2User;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.multipart.MultipartFile;
+
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.sql.Timestamp;
 import java.time.Instant;
 import java.util.List;
@@ -26,11 +32,17 @@ import java.util.stream.Collectors;
 public class UserServiceImpl implements UserService {
     private final UserRepository userRepository;
     private final BCryptPasswordEncoder passwordEncoder;
+    private final Path profileImageDirectory = Paths.get("uploads/profile-images");
 
     @Autowired
     public UserServiceImpl(UserRepository userRepository, BCryptPasswordEncoder passwordEncoder) {
         this.userRepository = userRepository;
         this.passwordEncoder = passwordEncoder;
+        try {
+            Files.createDirectories(profileImageDirectory);
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
     }
 
     @Override
@@ -203,6 +215,26 @@ public class UserServiceImpl implements UserService {
     public void changePassword(User user, String newPassword) {
         user.setSenha(passwordEncoder.encode(newPassword));
         userRepository.save(user);
+    }
+
+    public void updateProfileImage(String username, MultipartFile file) throws IOException {
+        if(file.isEmpty()) {
+            throw new IllegalArgumentException("Por favor, selecione um arquivo.");
+        }
+        if(!file.getContentType().startsWith("image/")) {
+            throw new IllegalArgumentException("Por favor, selecione um arquivo de imagem!");
+        }
+        String filename = UUID.randomUUID().toString() + "_" + file.getOriginalFilename();
+        Path filePath = profileImageDirectory.resolve(filename);
+        try {
+            file.transferTo(filePath.toFile());
+            User user = userRepository.findByEmail(username)
+                    .orElseThrow(() -> new UsernameNotFoundException("Usuario nao encontrado: " + username));
+            user.setFoto(filePath.toString());
+            userRepository.save(user);
+        } catch (IOException e) {
+            throw new IOException("Erro ao salvar foto de perfil.", e);
+        }
     }
 
     private UserDTO convertToDTO(User user) {

@@ -2,12 +2,20 @@ package br.com.project.music.services.impl;
 
 import br.com.project.music.business.dtos.EventDTO;
 import br.com.project.music.business.entities.Event;
+import br.com.project.music.business.entities.Genre;
+import br.com.project.music.business.entities.Reserva;
+import br.com.project.music.business.entities.User;
 import br.com.project.music.business.repositories.EventRepository;
+import br.com.project.music.business.repositories.GenresRepository;
+import br.com.project.music.business.repositories.UserRepository;
 import br.com.project.music.services.EventService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cglib.core.Local;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDateTime;
+import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -17,6 +25,10 @@ public class EventServiceImpl implements EventService {
 
     @Autowired
     private EventRepository eventRepository;
+    @Autowired
+    private UserRepository userRepository;
+    @Autowired
+    private GenresRepository genresRepository;
 
     @Override
     @Transactional
@@ -27,6 +39,7 @@ public class EventServiceImpl implements EventService {
         event.setDescricao(eventDTO.getDescricao());
         event.setGeneroMusical(eventDTO.getGeneroMusical());
         event.setLocalEvento(eventDTO.getLocalEvento());
+        event.setHost(eventDTO.getHost());
         Event savedEvent = eventRepository.save(event);
         return convertToDTO(savedEvent);
     }
@@ -53,6 +66,7 @@ public class EventServiceImpl implements EventService {
             event.setDescricao(eventDTO.getDescricao());
             event.setGeneroMusical(eventDTO.getGeneroMusical());
             event.setLocalEvento(eventDTO.getLocalEvento());
+            event.setHost(eventDTO.getHost());
             return convertToDTO(eventRepository.save(event));
         }
         return null;
@@ -64,6 +78,73 @@ public class EventServiceImpl implements EventService {
         eventRepository.deleteById(id);
     }
 
+    public List<Event> getEventsByHostId(Long hostId) {
+        Optional<User> host = userRepository.findById(hostId);
+        if(host.isPresent()) {
+            User createdHost = host.get();
+            return eventRepository.findByHost(createdHost);
+        } else {
+            return Collections.emptyList();
+        }
+    }
+    public List<Event> getEventsByGenreId(Long genreId) {
+        Optional<Genre> genre = genresRepository.findById(genreId);
+        if(genre.isPresent()) {
+            Genre createdGenre = genre.get();
+            return eventRepository.findByGeneroMusical(createdGenre);
+        } else {
+            return Collections.emptyList();
+        }
+    }
+    @Override
+    public List<Event> findByData(LocalDateTime data){
+        return eventRepository.findByData(data);
+    }
+
+    @Override
+    public List<Event> getFutureEvents(){
+        LocalDateTime now = LocalDateTime.now();
+        return eventRepository.findByDataHoraAfter(now);
+    }
+
+    @Override
+    public List<Event> getPastEvents(){
+        LocalDateTime now = LocalDateTime.now();
+        return eventRepository.findByDataHoraBefore(now);
+    }
+
+    @Override
+    public String getEventStatus(Event event) {
+        LocalDateTime now = LocalDateTime.now();
+        if(event.getDataHora().isAfter(now)){
+            return "Futuro";
+        } else if(event.getDataHora().isBefore(now)){
+            return "Passado";
+        } else {
+            return "Acontecendo Agora";
+        }
+    }
+
+    @Override
+    public List<Event> getEventsOnDate(LocalDateTime date){
+        return eventRepository.findByData(date);
+    }
+
+    @Override
+    public List<Event> getEventByReserva(Reserva reserva) {
+        return eventRepository.findByReservas(reserva);
+    }
+
+    @Override
+    public List<Event> findEventsWithReservations(){
+        return eventRepository.findByHasReservas();
+    }
+
+    @Override
+    public List<Event> getEventByReservaId(Long reservaId){
+        return eventRepository.findByReservas_IdReserva(reservaId);
+    }
+
     private EventDTO convertToDTO(Event event) {
         return new EventDTO(
                 event.getIdEvento(),
@@ -71,7 +152,8 @@ public class EventServiceImpl implements EventService {
                 event.getDataHora(),
                 event.getDescricao(),
                 event.getGeneroMusical(),
-                event.getLocalEvento()
+                event.getLocalEvento(),
+                event.getHost()
         );
     }
 }

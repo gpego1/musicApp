@@ -1,5 +1,4 @@
-package br.com.project.music.services; // Ajuste o pacote conforme a sua estrutura
-
+package br.com.project.music.services;
 import br.com.project.music.business.entities.Place;
 import br.com.project.music.business.repositories.PlaceRepository;
 import org.springframework.beans.factory.annotation.Autowired;

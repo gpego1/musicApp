@@ -1,5 +1,6 @@
 package br.com.project.music.business.repositories;
 
+import br.com.project.music.business.dtos.MusicoDTO;
 import br.com.project.music.business.entities.Musico;
 import org.springframework.data.jpa.repository.JpaRepository;
 

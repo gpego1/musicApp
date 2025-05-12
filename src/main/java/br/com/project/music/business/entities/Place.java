@@ -16,4 +16,10 @@ public class Place {
 
     @Column(name = "nome_local")
     private String local;
+
+    @Column(name = "cep")
+    private String cep;
+
+    @Column(name = "numero")
+    private String numero;
 }

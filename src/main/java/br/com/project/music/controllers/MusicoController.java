@@ -20,20 +20,23 @@ public class MusicoController {
     public MusicoController(MusicoService musicoService) {
         this.musicoService = musicoService;
     }
+
     @GetMapping
     public ResponseEntity<List<MusicoDTO>> getAllMusicos() {
         List<MusicoDTO> musicos = musicoService.getAllMusicos();
         return new ResponseEntity<>(musicos, HttpStatus.OK);
     }
+
     @GetMapping("/{id}")
-    public ResponseEntity<Optional<MusicoDTO>> getMusicoById(@PathVariable Long id) {
-        Optional<MusicoDTO> musico = musicoService.getMusicoById(id);
-        if(musico.isPresent()) {
-            return new ResponseEntity<>(musico, HttpStatus.OK);
+    public ResponseEntity<MusicoDTO> getMusicoById(@PathVariable Long id) {
+        Optional<MusicoDTO> musicoOptional = musicoService.getMusicoById(id);
+        if (musicoOptional.isPresent()) {
+            return new ResponseEntity<>(musicoOptional.get(), HttpStatus.OK);
         } else {
             return new ResponseEntity<>(HttpStatus.NOT_FOUND);
         }
     }
+
     @PostMapping
     public ResponseEntity<MusicoDTO> createMusico(@RequestBody MusicoDTO musico) {
         MusicoDTO musicoCriado = musicoService.createMusico(musico);
