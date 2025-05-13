@@ -33,8 +33,13 @@ public class NotificationService {
         }
     }
 
+
     public Optional<Notification> getNotificationById(Long id) {
         return notificationRepository.findById(id);
+    }
+
+    public List<Notification> getNotificationsByUserId(Long userId){
+        return notificationRepository.findByUsuarioId(userId);
     }
 
     public Notification markNotificationAsRead(Long id) {

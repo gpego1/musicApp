@@ -43,6 +43,11 @@ public class ContratoController {
         return contrato.map(ResponseEntity::ok)
                 .orElseGet(() -> ResponseEntity.notFound().build());
     }
+    @GetMapping("/musico/{musicoId}")
+    public ResponseEntity<List<Contrato>> getContratoByMusicoId(@PathVariable Long musicoId){
+        List<Contrato> contratosMusico = contratoService.findByMusicoId(musicoId);
+        return ResponseEntity.ok(contratosMusico);
+    }
 
     @PostMapping
     public ResponseEntity<Contrato> createContrato(@RequestBody Contrato contrato) {

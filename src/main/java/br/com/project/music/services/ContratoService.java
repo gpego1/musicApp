@@ -14,23 +14,17 @@ public class ContratoService {
     @Autowired
     private ContratoRepository contratoRepository;
 
-    public List<Contrato> findAll() {
-        return contratoRepository.findAll();
-    }
+    public List<Contrato> findAll() {return contratoRepository.findAll();}
 
-    public Optional<Contrato> findById(ContratoId id) {
-        return contratoRepository.findById(id);
-    }
+    public Optional<Contrato> findById(ContratoId id) {return contratoRepository.findById(id);}
 
-    public Contrato save(Contrato contrato) {
-        return contratoRepository.save(contrato);
-    }
+    public Contrato save(Contrato contrato) {return contratoRepository.save(contrato);}
 
-    public void deleteById(ContratoId id) {
-        contratoRepository.deleteById(id);
-    }
+    public void deleteById(ContratoId id) {contratoRepository.deleteById(id);}
 
-    public boolean existsById(ContratoId id) {
-        return contratoRepository.existsById(id);
+    public boolean existsById(ContratoId id) {return contratoRepository.existsById(id);}
+
+    public List<Contrato> findByMusicoId(Long musicoId){
+        return contratoRepository.findByIdContrato_Musico_IdMusico(musicoId);
     }
 }
