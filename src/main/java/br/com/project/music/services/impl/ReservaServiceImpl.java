@@ -55,14 +55,25 @@ public class ReservaServiceImpl implements ReservaService {
         Optional<Reserva> existingReservaOptional = reservaRepository.findById(id);
         if (existingReservaOptional.isPresent()) {
             Reserva existingReserva = existingReservaOptional.get();
-            User user = userRepository.findById(reservaDTO.getUsuario().getId()).orElse(existingReserva.getUsuario());
-            Event event = eventRepository.findById(reservaDTO.getEvento().getIdEvento()).orElse(existingReserva.getEvento());
-            Reserva updatedReserva = convertToEntity(reservaDTO, user, event);
-            updatedReserva.setIdReserva(id);
-            Reserva savedReserva = reservaRepository.save(updatedReserva);
-            return convertToDTO(savedReserva);
+            existingReserva.setConfirmado(reservaDTO.isConfirmado());
+
+            if(reservaDTO.getUsuario() != null && reservaDTO.getUsuario().getId() !=null){
+                User user = (existingReserva.getUsuario() != null && existingReserva.getUsuario().getId().equals(reservaDTO.getUsuario().getId()))
+                        ? existingReserva.getUsuario()
+                        : userRepository.findById(reservaDTO.getUsuario().getId()).orElse(null);
+                existingReserva.setUsuario(user);
+            }
+
+            if(reservaDTO.getEvento() != null && reservaDTO.getEvento().getIdEvento() !=null){
+                Event evento = (existingReserva.getEvento() != null && existingReserva.getEvento().getIdEvento().equals(reservaDTO.getEvento().getIdEvento()))
+                        ?existingReserva.getEvento()
+                        :eventRepository.findById(reservaDTO.getEvento().getIdEvento()).orElse(null);
+                  existingReserva.setEvento(evento);
+            }
+            Reserva updatedReserva = reservaRepository.save(existingReserva);
+            return convertToDTO(updatedReserva);
         }
-        return null; // Handle not found scenario
+        return null;
     }
     @Override
     public void deleteReservaById(Long id) {
