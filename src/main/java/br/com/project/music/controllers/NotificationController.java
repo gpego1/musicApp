@@ -26,6 +26,19 @@ public class NotificationController {
         return new ResponseEntity<>(notifications, HttpStatus.OK);
     }
 
+    @GetMapping("/{id}")
+    public ResponseEntity<Notification> getNotificationById(@PathVariable Long id) {
+        Optional<Notification> notification = notificationService.getNotificationById(id);
+        return notification.map(response -> new ResponseEntity<>(response, HttpStatus.OK))
+                .orElse(new ResponseEntity<>(HttpStatus.NOT_FOUND));
+    }
+
+    @GetMapping("user/{userId}")
+    public ResponseEntity<List<Notification>> getNotificationsByUserId(@PathVariable Long userId){
+      List<Notification> notifications = notificationService.getNotificationsByUserId(userId);
+      return new ResponseEntity<>(notifications, HttpStatus.OK);
+    }
+
     @PostMapping
     public ResponseEntity<Notification> createNotification(@RequestBody NotificationRequest request) {
         try {
@@ -36,11 +49,16 @@ public class NotificationController {
         }
     }
 
-    @GetMapping("/{id}")
-    public ResponseEntity<Notification> getNotificationById(@PathVariable Long id) {
-        Optional<Notification> notification = notificationService.getNotificationById(id);
-        return notification.map(response -> new ResponseEntity<>(response, HttpStatus.OK))
-                .orElse(new ResponseEntity<>(HttpStatus.NOT_FOUND));
+    @PostMapping("/user/{idUsuario}")
+    public ResponseEntity<Notification> sendNotificationToUser(
+            @PathVariable Long idUsuario,
+            @RequestBody NotificationRequest request) {
+        try {
+            Notification notification = notificationService.createNotification(idUsuario, request.getMensagem());
+            return new ResponseEntity<>(notification, HttpStatus.CREATED);
+        } catch (IllegalArgumentException e) {
+            return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+        }
     }
 
     @PutMapping("/{id}/read")
@@ -62,10 +80,4 @@ public class NotificationController {
             return new ResponseEntity<>(HttpStatus.NOT_FOUND);
         }
     }
-
-    // Removed:
-    // @GetMapping("/user/{usuarioId}")
-    // @GetMapping("/user/{usuarioId}/unread")
-    // @GetMapping("/user/{usuarioId}/unread/count")
-    // @PutMapping("/user/{usuarioId}/read-all")
 }
