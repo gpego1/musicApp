@@ -38,9 +38,13 @@ public class PlaceController {
     @PostMapping
     public ResponseEntity<Place> createPlace(@RequestBody Map<String, String> payload) {
         String local = payload.get("local");
+        String cep = payload.get("cep");
+        String numero = payload.get("numero");
         if (local != null && !local.trim().isEmpty()) {
             Place place = new Place();
             place.setLocal(local);
+            place.setCep(cep);
+            place.setNumero(numero);
             Place createdPlace = placeService.createPlace(place);
             return new ResponseEntity<>(createdPlace, HttpStatus.CREATED);
         } else {
