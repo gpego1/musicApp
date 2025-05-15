@@ -8,12 +8,14 @@ import br.com.project.music.business.entities.User;
 import br.com.project.music.business.repositories.UserRepository;
 import br.com.project.music.services.AuthService;
 import br.com.project.music.services.UserService;
+import jakarta.annotation.Resource;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -30,6 +32,10 @@ import org.springframework.web.servlet.view.RedirectView;
 
 
 import java.io.IOException;
+import java.net.MalformedURLException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.sql.Timestamp;
 import java.util.Collections;
 import java.util.Map;
@@ -216,6 +222,40 @@ public class AuthController {
             return new ResponseEntity<>("Erro ao fazer upload da imagem: " + e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
         } catch (RuntimeException e) {
             return new ResponseEntity<>(e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
+    @GetMapping("user/me/profile-image")
+    public ResponseEntity<byte[]> getProfileImage(@AuthenticationPrincipal UserDetails userDetails) {
+        if (userDetails == null) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+        }
+        String email = userDetails.getUsername();
+        Optional<User> userOptional = userService.getUserByEmail(email);
+        if (userOptional.isEmpty()) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
+        }
+        User user = userOptional.get();
+        String imagePath = user.getFoto();
+
+        if (imagePath == null || imagePath.isEmpty()) {
+            return ResponseEntity.notFound().build();
+        }
+        try {
+            Path filePath = Paths.get(imagePath);
+            byte[] imageBytes = Files.readAllBytes(filePath);
+
+            String contentType = user.getProfilePictureContentType();
+            if (contentType == null || contentType.isEmpty()) {
+                contentType = Files.probeContentType(filePath);
+                if (contentType == null) {
+                    contentType = "application/octet-stream";
+                }
+            }
+            return ResponseEntity.ok()
+                    .contentType(MediaType.parseMediaType(contentType))
+                    .body(imageBytes);
+        } catch (IOException e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
         }
     }
 

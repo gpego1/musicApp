@@ -36,6 +36,9 @@ public class User {
     @Column(name = "foto", nullable = true)
     private String foto;
 
+    @Column(name = "foto_content_type", nullable = true)
+    private String profilePictureContentType;
+
     @OneToOne(mappedBy = "usuario", cascade = CascadeType.ALL, orphanRemoval = true)
     @JsonIgnore
     private Musico musico;
@@ -76,6 +79,5 @@ public class User {
         }
     }
     public void setRole(Role role) {this.role = role;}
-
 
 }
