@@ -61,6 +61,7 @@ public class SecurityConfig {
                         .requestMatchers("/users/**").permitAll()
                         .requestMatchers("/reservas/**").permitAll()
                         .requestMatchers("/notifications/**").permitAll()
+                        .requestMatchers("/notifications/{id}").permitAll()
                         .requestMatchers("/contratos/**").permitAll()
                         .requestMatchers("/escalas/**").permitAll()
                         .anyRequest().authenticated()

@@ -41,25 +41,6 @@ public class UserController {
         UserDTO createdUserDTO = userService.createUser(userDTO);
         return ResponseEntity.ok(createdUserDTO);
     }
-    @PostMapping("/upload-profile-image")
-    public ResponseEntity<?> uploadProfileImage(@RequestParam("profileImage") MultipartFile file) {
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        String username = authentication.getName();
-
-        try {
-            userService.updateProfileImage(username, file);
-            return ResponseEntity.ok("Foto de perfil atualizada com sucesso.");
-        } catch (IllegalArgumentException e) {
-            return ResponseEntity.badRequest().body(e.getMessage());
-        } catch (ResourceNotFoundException e) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(e.getMessage());
-        } catch (IOException e) {
-            e.printStackTrace();
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Erro ao salvar a foto de perfil.");
-        } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Erro desconhecido ao processar a foto de perfil: " + e.getMessage());
-        }
-    }
 
     @GetMapping
     public ResponseEntity<List<UserDTO>> getAllUsers() {

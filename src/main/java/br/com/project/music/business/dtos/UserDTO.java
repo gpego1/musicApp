@@ -16,4 +16,5 @@ public class UserDTO {
     //Se for musico:
     private String nomeArtistico;
     private String redesSociais;
+    private String foto;
 }

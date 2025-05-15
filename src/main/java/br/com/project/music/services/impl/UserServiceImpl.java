@@ -9,6 +9,7 @@ import jakarta.persistence.EntityNotFoundException;
 
 import org.hibernate.StaleObjectStateException;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
@@ -21,6 +22,7 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.nio.file.StandardCopyOption;
 import java.sql.Timestamp;
 import java.time.Instant;
 import java.util.List;
@@ -32,18 +34,15 @@ import java.util.stream.Collectors;
 public class UserServiceImpl implements UserService {
     private final UserRepository userRepository;
     private final BCryptPasswordEncoder passwordEncoder;
-    private final Path profileImageDirectory = Paths.get("uploads/profile-images");
 
     @Autowired
     public UserServiceImpl(UserRepository userRepository, BCryptPasswordEncoder passwordEncoder) {
         this.userRepository = userRepository;
         this.passwordEncoder = passwordEncoder;
-        try {
-            Files.createDirectories(profileImageDirectory);
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
     }
+
+    @Value("${upload.profile.directory}")
+    private String uploadDirectory;
 
     @Override
     public UserDTO createUser(UserDTO userDTO) {
@@ -217,24 +216,18 @@ public class UserServiceImpl implements UserService {
         userRepository.save(user);
     }
 
-    public void updateProfileImage(String username, MultipartFile file) throws IOException {
-        if(file.isEmpty()) {
-            throw new IllegalArgumentException("Por favor, selecione um arquivo.");
-        }
-        if(!file.getContentType().startsWith("image/")) {
-            throw new IllegalArgumentException("Por favor, selecione um arquivo de imagem!");
-        }
-        String filename = UUID.randomUUID().toString() + "_" + file.getOriginalFilename();
-        Path filePath = profileImageDirectory.resolve(filename);
-        try {
-            file.transferTo(filePath.toFile());
-            User user = userRepository.findByEmail(username)
-                    .orElseThrow(() -> new UsernameNotFoundException("Usuario nao encontrado: " + username));
-            user.setFoto(filePath.toString());
-            userRepository.save(user);
-        } catch (IOException e) {
-            throw new IOException("Erro ao salvar foto de perfil.", e);
-        }
+    public String uploadProfileImage(Long userId, MultipartFile file) throws IOException {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new RuntimeException("Usuário não encontrado com ID: " + userId));
+
+        String fileName = UUID.randomUUID().toString() + "_" + file.getOriginalFilename();
+        Path filePath = Paths.get(uploadDirectory, fileName);
+        Files.copy(file.getInputStream(), filePath, StandardCopyOption.REPLACE_EXISTING);
+
+        String foto = "/uploads/profiles/" + fileName;
+        user.setFoto(foto);
+        userRepository.save(user);
+        return foto;
     }
 
     private UserDTO convertToDTO(User user) {
@@ -246,7 +239,8 @@ public class UserServiceImpl implements UserService {
                 user.getDataCriacao(),
                 user.getRole(),
                 user.getMusico() != null ? user.getMusico().getNomeArtistico() : null,
-                user.getMusico() != null ? user.getMusico().getRedesSociais() : null
+                user.getMusico() != null ? user.getMusico().getRedesSociais() : null,
+                user.getFoto()
         );
     }
 }
