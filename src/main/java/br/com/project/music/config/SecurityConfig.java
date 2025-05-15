@@ -62,7 +62,6 @@ public class SecurityConfig {
                         .requestMatchers("/reservas/**").permitAll()
                         .requestMatchers("/notifications/**").permitAll()
                         .requestMatchers("/contratos/**").permitAll()
-                        .requestMatchers("/contratos/{eventoId}/{musicoId}").permitAll()
                         .requestMatchers("/escalas/**").permitAll()
                         .anyRequest().authenticated()
                 )
