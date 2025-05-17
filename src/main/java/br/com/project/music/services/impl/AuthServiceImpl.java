@@ -3,6 +3,7 @@ package br.com.project.music.services.impl;
 import br.com.project.music.business.dtos.Auth;
 import br.com.project.music.business.dtos.GoogleUserInfo;
 import br.com.project.music.business.entities.User;
+import br.com.project.music.business.repositories.UserRepository;
 import br.com.project.music.services.AuthService;
 import br.com.project.music.services.UserService;
 import com.google.api.client.googleapis.auth.oauth2.GoogleIdToken;
@@ -103,12 +104,10 @@ public class AuthServiceImpl implements AuthService {
         GoogleUserInfo googleUser = verifyGoogleToken(googleToken);
         return generateTokenForGoogle(googleUser.getEmail());
     }
-
-
     public String getEmailFromToken(String token) {
         try {
-            Claims claims = Jwts.parser() // Use parserBuilder()
-                    .setSigningKey(getSigningKey()) // Set the signing key
+            Claims claims = Jwts.parser()
+                    .setSigningKey(getSigningKey())
                     .build()
                     .parseClaimsJws(token)
                     .getBody();
@@ -118,5 +117,4 @@ public class AuthServiceImpl implements AuthService {
             return null;
         }
     }
-
 }

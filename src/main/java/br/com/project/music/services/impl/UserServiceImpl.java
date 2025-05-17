@@ -41,7 +41,7 @@ public class UserServiceImpl implements UserService {
         this.passwordEncoder = passwordEncoder;
     }
 
-    @Value("${upload.profile.directory}")
+    @Value("${file.upload-dir}")
     private String uploadDirectory;
 
     @Override
@@ -221,15 +221,19 @@ public class UserServiceImpl implements UserService {
                 .orElseThrow(() -> new RuntimeException("Usuário não encontrado com ID: " + userId));
 
         String fileName = UUID.randomUUID().toString() + "_" + file.getOriginalFilename();
-        Path filePath = Paths.get(uploadDirectory, fileName);
+        Path uploadPath = Paths.get(uploadDirectory);
+
+        if(!Files.exists(uploadPath)){
+            Files.createDirectories(uploadPath);
+        }
+
+        Path filePath = uploadPath.resolve(fileName);
         Files.copy(file.getInputStream(), filePath, StandardCopyOption.REPLACE_EXISTING);
-
-        String foto = "/uploads/profiles/" + fileName;
-        user.setFoto(foto);
+        user.setFoto(fileName);
+        user.setProfilePictureContentType(file.getContentType());
         userRepository.save(user);
-        return foto;
+        return fileName;
     }
-
     private UserDTO convertToDTO(User user) {
         return new UserDTO(
                 user.getId(),

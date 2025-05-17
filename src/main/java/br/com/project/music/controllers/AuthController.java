@@ -8,12 +8,15 @@ import br.com.project.music.business.entities.User;
 import br.com.project.music.business.repositories.UserRepository;
 import br.com.project.music.services.AuthService;
 import br.com.project.music.services.UserService;
-import jakarta.annotation.Resource;
+import org.springframework.core.io.Resource;
+import org.springframework.core.io.UrlResource;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -62,6 +65,9 @@ public class AuthController {
 
     @Autowired
     private UserRepository userRepository;
+
+    @Value("${file.upload-dir}")
+    private String uploadDirectory;
 
     @PostMapping("/register")
     public ResponseEntity<UserDTO> registerUser(@Valid @RequestBody UserDTO userDTO) {
@@ -211,7 +217,7 @@ public class AuthController {
             String email = userDetails.getUsername();
             Optional<User> userOptional = userService.getUserByEmail(email);
 
-            if(userOptional.isPresent()){
+            if(userOptional.isEmpty()){
                 return new ResponseEntity<>("Usuário não encontrado.", HttpStatus.NOT_FOUND);
             }
             User user = userOptional.get();
@@ -224,8 +230,8 @@ public class AuthController {
             return new ResponseEntity<>(e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
-    @GetMapping("user/me/profile-image")
-    public ResponseEntity<byte[]> getProfileImage(@AuthenticationPrincipal UserDetails userDetails) {
+    @GetMapping("/user/me/profile-image") // Caminho completo: /auth/user/me/profile-image
+    public ResponseEntity<Resource> getProfileImage(@AuthenticationPrincipal UserDetails userDetails) { // Mudança para Resource
         if (userDetails == null) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
         }
@@ -235,26 +241,37 @@ public class AuthController {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
         }
         User user = userOptional.get();
-        String imagePath = user.getFoto();
+        String fileName = user.getFoto(); // Este é APENAS o nome do arquivo, ex: "abc-123_pfp.jpg"
 
-        if (imagePath == null || imagePath.isEmpty()) {
+        if (fileName == null || fileName.isEmpty()) {
             return ResponseEntity.notFound().build();
         }
         try {
-            Path filePath = Paths.get(imagePath);
-            byte[] imageBytes = Files.readAllBytes(filePath);
+            // CONSTRÓI O CAMINHO FÍSICO COMPLETO PARA O ARQUIVO NO DISCO
+            Path filePath = Paths.get(uploadDirectory).resolve(fileName).normalize(); // <--- CORREÇÃO AQUI
+            Resource resource = new UrlResource(filePath.toUri()); // Usar Resource para servir arquivos
 
-            String contentType = user.getProfilePictureContentType();
-            if (contentType == null || contentType.isEmpty()) {
-                contentType = Files.probeContentType(filePath);
-                if (contentType == null) {
-                    contentType = "application/octet-stream";
+            if (resource.exists() && resource.isReadable()) {
+                String contentType = user.getProfilePictureContentType();
+                if (contentType == null || contentType.isEmpty()) {
+                    contentType = Files.probeContentType(filePath);
+                    if (contentType == null) {
+                        contentType = "application/octet-stream";
+                    }
                 }
+                return ResponseEntity.ok()
+                        .contentType(MediaType.parseMediaType(contentType))
+                        .header(HttpHeaders.CONTENT_DISPOSITION, "inline; filename=\"" + resource.getFilename() + "\"")
+                        .body(resource);
+            } else {
+                System.err.println("Arquivo de perfil não encontrado ou não legível: " + filePath.toAbsolutePath());
+                return ResponseEntity.notFound().build();
             }
-            return ResponseEntity.ok()
-                    .contentType(MediaType.parseMediaType(contentType))
-                    .body(imageBytes);
+        } catch (MalformedURLException ex) {
+            System.err.println("Erro na URL do recurso: " + ex.getMessage());
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
         } catch (IOException e) {
+            System.err.println("Erro de IO ao ler arquivo de perfil: " + e.getMessage());
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
         }
     }
