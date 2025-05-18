@@ -2,7 +2,9 @@ package br.com.project.music.controllers;
 
 import br.com.project.music.business.dtos.EventDTO;
 import br.com.project.music.business.entities.Event;
+import br.com.project.music.business.entities.User;
 import br.com.project.music.business.repositories.EventRepository;
+import br.com.project.music.business.repositories.UserRepository;
 import br.com.project.music.services.EventService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.Resource;
@@ -11,6 +13,9 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -24,11 +29,13 @@ import java.util.Optional;
 public class EventController {
     private final EventService eventService;
     private final EventRepository eventRepository;
+    private final UserRepository userRepository;
 
     @Autowired
-    public EventController(EventService eventService, EventRepository eventRepository) {
+    public EventController(EventService eventService, EventRepository eventRepository, UserRepository userRepository) {
         this.eventService = eventService;
         this.eventRepository = eventRepository;
+        this.userRepository = userRepository;
     }
 
     @GetMapping
@@ -55,6 +62,34 @@ public class EventController {
         }
         return ResponseEntity.ok(events);
     }
+    @GetMapping("/host/{hostId}/future")
+    public ResponseEntity<List<Event>> getFutureEventsByHost(@PathVariable Long hostId){
+        Optional<User> hostOptional = userRepository.findById(hostId);
+        if(hostOptional.isEmpty()){
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(null);
+        }
+        LocalDateTime now = LocalDateTime.now();
+        List<Event> futureEvents = eventRepository.findByHostIdAndDataHoraAfterOrderByDataHoraAsc(hostId, now);
+        if(futureEvents.isEmpty()){
+            return ResponseEntity.status(HttpStatus.NO_CONTENT).body(null);
+        }
+        return ResponseEntity.ok(futureEvents);
+    }
+    @GetMapping("/host/{hostId}/past")
+    public ResponseEntity<List<Event>> getPastEventsByHost(@PathVariable Long hostId){
+        Optional<User> hostOptional = userRepository.findById(hostId);
+        if(hostOptional.isEmpty()){
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(null);
+        }
+        LocalDateTime now = LocalDateTime.now();
+        List<Event> pastEvents = eventRepository.findByHostIdAndDataHoraBeforeOrderByDataHoraDesc(hostId, now);
+        if(pastEvents.isEmpty()){
+            return ResponseEntity.status(HttpStatus.NO_CONTENT).body(null);
+        }
+        return ResponseEntity.ok(pastEvents);
+    }
+
+
     @GetMapping("/genre/{genreId}")
     public ResponseEntity<List<Event>> gentEventsByGenre(@PathVariable Long genreId){
         List<Event> events = eventService.getEventsByGenreId(genreId);

@@ -25,6 +25,9 @@ public interface EventRepository extends JpaRepository<Event, Long> {
     List<Event> findByDataHoraAfter(LocalDateTime now);
     List<Event> findByDataHoraBefore(LocalDateTime now);
 
+    List<Event> findByHostIdAndDataHoraAfterOrderByDataHoraAsc(Long hostId, LocalDateTime data);
+    List<Event> findByHostIdAndDataHoraBeforeOrderByDataHoraDesc(Long hostId, LocalDateTime data);
+
     List<Event> findByReservas(Reserva reserva);
 
     @Query("SELECT DISTINCT e FROM Event e JOIN e.reservas r")

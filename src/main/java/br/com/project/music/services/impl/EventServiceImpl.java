@@ -139,12 +139,10 @@ public class EventServiceImpl implements EventService {
             return "Acontecendo Agora";
         }
     }
-
     @Override
     public List<Event> getEventsOnDate(LocalDateTime date){
         return eventRepository.findByData(date);
     }
-
     @Override
     public List<Event> getEventByReserva(Reserva reserva) {
         return eventRepository.findByReservas(reserva);
