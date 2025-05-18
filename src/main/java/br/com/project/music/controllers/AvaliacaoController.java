@@ -86,5 +86,4 @@ public class AvaliacaoController {
         }
     }
 
-    // Outros endpoints para atualizar avaliações podem ser adicionados aqui
 }

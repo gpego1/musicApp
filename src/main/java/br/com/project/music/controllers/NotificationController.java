@@ -1,16 +1,25 @@
 package br.com.project.music.controllers;
 
+import br.com.project.music.business.dtos.Auth;
 import br.com.project.music.business.dtos.NotificationRequest;
 import br.com.project.music.business.entities.Notification;
 
+import br.com.project.music.business.entities.User;
+import br.com.project.music.business.repositories.NotificationRepository;
+import br.com.project.music.business.repositories.UserRepository;
 import br.com.project.music.services.NotificationService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/notifications")
@@ -18,6 +27,12 @@ public class NotificationController {
 
     @Autowired
     private NotificationService notificationService;
+
+    @Autowired
+    private NotificationRepository notificationRepository;
+
+    @Autowired
+    private UserRepository userRepository;
 
 
   @GetMapping
@@ -46,6 +61,36 @@ public class NotificationController {
             return new ResponseEntity<>(notification, HttpStatus.CREATED);
         } catch (IllegalArgumentException e) {
             return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+        }
+    }
+
+    @PostMapping("/broadcast")
+    @PreAuthorize("hasRole('HOST')")
+    public ResponseEntity<String> sendBroadcastNotification(@RequestBody NotificationRequest request) {
+
+      Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        String username = authentication.getName();
+
+        System.out.println("Usuário " + username + " (com roles: " + authentication.getAuthorities().stream().map(g -> g.getAuthority()).collect(Collectors.joining(", ")) + ") está tentando enviar uma notificação de broadcast.");
+        if (request.getMensagem() == null || request.getMensagem().trim().isEmpty()) {
+            return ResponseEntity.badRequest().body("A mensagem da notificação é obrigatória.");
+        }
+        try {
+            List<User> allUsers = userRepository.findAll();
+
+            if (allUsers.isEmpty()) {
+                return ResponseEntity.status(HttpStatus.NO_CONTENT).body("Nenhum usuário encontrado para enviar notificação.");
+            }
+            for (User user : allUsers) {
+                Notification notification = new Notification();
+                notification.setUsuario(user);
+                notification.setMensagem(request.getMensagem());
+                notificationRepository.save(notification);
+            }
+            return ResponseEntity.ok("Notificação enviada com sucesso para " + allUsers.size() + " usuários.");
+        } catch (Exception e) {
+            System.err.println("Erro ao processar notificação de broadcast: " + e.getMessage());
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Erro interno ao enviar notificação.");
         }
     }
 
