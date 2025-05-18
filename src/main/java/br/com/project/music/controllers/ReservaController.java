@@ -66,20 +66,22 @@ public class ReservaController {
             return new ResponseEntity<>(HttpStatus.NOT_FOUND);
         }
     }
+    @GetMapping("/usuario/{userId}/confirmadas")
+    public ResponseEntity<List<ReservaDTO>> getConfirmedReservasByUsuario(@PathVariable Long userId){
+        List<ReservaDTO> confirmedReservas = reservaService.getConfirmedReservasByUsuario(userId);
+
+        if(confirmedReservas == null){
+            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+        }
+        if(confirmedReservas.isEmpty()){
+            return new ResponseEntity<>(HttpStatus.NO_CONTENT);
+        }
+        return new ResponseEntity<>(confirmedReservas, HttpStatus.OK);
+    }
 
     @GetMapping("/evento/{eventoId}")
     public ResponseEntity<List<ReservaDTO>> getReservasByEvento(@PathVariable Long eventoId) {
         List<ReservaDTO> reservas = reservaService.getReservasByEvento(eventoId);
-        if (reservas != null) {
-            return new ResponseEntity<>(reservas, HttpStatus.OK);
-        } else {
-            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
-        }
-    }
-
-    @GetMapping("/usuario/{userId}/evento/{eventoId}")
-    public ResponseEntity<List<ReservaDTO>> getReservasByUserAndEvento(@PathVariable Long userId, @PathVariable Long eventoId) {
-        List<ReservaDTO> reservas = reservaService.getReservasByUserAndEvent(userId, eventoId);
         if (reservas != null) {
             return new ResponseEntity<>(reservas, HttpStatus.OK);
         } else {

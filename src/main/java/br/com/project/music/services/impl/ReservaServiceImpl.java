@@ -85,7 +85,7 @@ public class ReservaServiceImpl implements ReservaService {
                 .map(user -> reservaRepository.findByUsuario(user).stream()
                         .map(this::convertToDTO)
                         .collect(Collectors.toList()))
-                .orElse(null); // Handle user not found
+                .orElse(null);
     }
     @Override
     public List<ReservaDTO> getReservasByEvento(Long eventoId) {
@@ -93,16 +93,16 @@ public class ReservaServiceImpl implements ReservaService {
                 .map(event -> reservaRepository.findByEvento(event).stream()
                         .map(this::convertToDTO)
                         .collect(Collectors.toList()))
-                .orElse(null); // Handle event not found
+                .orElse(null);
     }
-    @Override
-    public List<ReservaDTO> getReservasByUserAndEvent(Long userId, Long eventoId) {
-        return userRepository.findById(userId)
-                .flatMap(user -> eventRepository.findById(eventoId)
-                        .map(event -> reservaRepository.findByUsuarioAndEvento(user, event).stream()
-                                .map(this::convertToDTO)
-                                .collect(Collectors.toList())))
-                .orElse(null); // Handle user or event not found
+    public List<ReservaDTO> getConfirmedReservasByUsuario(Long userId){
+        if(userRepository.findById(userId).isEmpty()){
+            return null;
+        }
+        List<Reserva> confirmedReservas = reservaRepository.findByUsuarioIdAndConfirmadoTrue(userId);
+        return confirmedReservas.stream()
+                .map(this::convertToDTO)
+                .collect(Collectors.toList());
     }
     private ReservaDTO convertToDTO(Reserva reserva) {
         ReservaDTO dto = new ReservaDTO();

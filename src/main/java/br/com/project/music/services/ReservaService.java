@@ -16,5 +16,5 @@ public interface ReservaService {
     void deleteReservaById(Long id);
     List<ReservaDTO> getReservasByUsuario(Long userId);
     List<ReservaDTO> getReservasByEvento(Long eventoId);
-    List<ReservaDTO> getReservasByUserAndEvent(Long userId, Long eventoId);
+    List<ReservaDTO> getConfirmedReservasByUsuario(Long userId);
 }

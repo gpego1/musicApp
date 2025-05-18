@@ -14,5 +14,5 @@ import java.util.Optional;
 public interface ReservaRepository extends JpaRepository<Reserva, Long> {
     List<Reserva> findByUsuario(User usuario);
     List<Reserva> findByEvento(Event evento);
-    List<Reserva> findByUsuarioAndEvento(User usuario, Event evento);
+    List<Reserva> findByUsuarioIdAndConfirmadoTrue(Long userId);
 }
