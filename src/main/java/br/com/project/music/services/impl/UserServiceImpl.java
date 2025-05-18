@@ -171,8 +171,8 @@ public class UserServiceImpl implements UserService {
             if (name != null && !name.equals(user.getName())) {
                 user.setName(name);
             }
-            if (picture != null && !picture.equals(user.getFoto())) {
-                user.setFoto(picture);
+            if (picture != null && !picture.equals(user.getGoogleProfilePictureUrl())) {
+                user.setGoogleProfilePictureUrl(picture);
             }
             return userRepository.save(user);
         }
@@ -182,7 +182,7 @@ public class UserServiceImpl implements UserService {
             User user = existingUserByEmail.get();
             if (user.getGoogleId() == null) {
                 user.setGoogleId(googleId);
-                user.setFoto(picture);
+                user.setGoogleProfilePictureUrl(picture);
                 return userRepository.save(user);
             } else if (!user.getGoogleId().equals(googleId)) {
                 throw new IllegalStateException("Email already associated with different Google account");
@@ -193,7 +193,7 @@ public class UserServiceImpl implements UserService {
         newUser.setEmail(email);
         newUser.setName(name != null ? name : email.split("@")[0]);
         newUser.setGoogleId(googleId);
-        newUser.setFoto(picture);
+        newUser.setGoogleProfilePictureUrl(picture);
         newUser.setDataCriacao(Timestamp.from(Instant.now()));
         newUser.setRole(User.Role.CLIENT);
         newUser.setSenha(passwordEncoder.encode(UUID.randomUUID().toString()));

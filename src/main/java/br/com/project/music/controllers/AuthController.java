@@ -158,7 +158,7 @@ public class AuthController {
                         "name", user.getName(),
                         "email", user.getEmail(),
                         "role", user.getRole().name(),
-                        "photo", user.getFoto(),
+                        "photo", user.getGoogleProfilePictureUrl(),
                         "isGoogleUser", user.getGoogleId() != null,
                         "hasPassword", user.getSenha() != null
 
@@ -241,8 +241,31 @@ public class AuthController {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
         }
         User user = userOptional.get();
-        String fileName = user.getFoto();
 
+        if (user.getGoogleId() != null && !user.getGoogleId().isEmpty() && user.getGoogleProfilePictureUrl() != null && !user.getGoogleProfilePictureUrl().isEmpty()) {
+        try {
+            Resource resource = new UrlResource(user.getGoogleProfilePictureUrl());
+            if (resource.exists() && resource.isReadable()) {
+            String contentType = "image/jpeg";
+            String imageUrl = user.getGoogleProfilePictureUrl();
+            if(imageUrl.endsWith(".png")){
+                contentType = "image/png";
+            } else if(imageUrl.endsWith(".gif")){
+                contentType = "image/gif";
+            }
+            return ResponseEntity.ok()
+                    .contentType(MediaType.parseMediaType(contentType))
+                    .header(HttpHeaders.CONTENT_DISPOSITION, "inline; filename=\"google_profile_picture.jpg\"")
+                    .body(resource);
+        } else {
+            System.err.println("Imagem do Google não encontrada ou não acessível na URL: " + user.getGoogleProfilePictureUrl());
+        }
+    } catch (MalformedURLException ex) {
+        System.err.println("URL da imagem do Google malformada: " + ex.getMessage());
+        }
+    }
+
+        String fileName = user.getFoto();
         if (fileName == null || fileName.isEmpty()) {
             return ResponseEntity.notFound().build();
         }
