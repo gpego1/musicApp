@@ -10,14 +10,26 @@ import br.com.project.music.business.repositories.GenresRepository;
 import br.com.project.music.business.repositories.UserRepository;
 import br.com.project.music.services.EventService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.cglib.core.Local;
+import org.springframework.core.io.Resource;
+import org.springframework.core.io.UrlResource;
+import org.springframework.http.MediaType;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.multipart.MultipartFile;
 
+import java.io.IOException;
+import java.net.MalformedURLException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.nio.file.StandardCopyOption;
 import java.time.LocalDateTime;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
+import java.util.UUID;
 import java.util.stream.Collectors;
 
 @Service
@@ -29,6 +41,9 @@ public class EventServiceImpl implements EventService {
     private UserRepository userRepository;
     @Autowired
     private GenresRepository genresRepository;
+
+    @Value("${file.upload.event-images-dir}")
+    private String eventUploadDirectory;
 
     @Override
     @Transactional
@@ -144,7 +159,58 @@ public class EventServiceImpl implements EventService {
     public List<Event> getEventByReservaId(Long reservaId){
         return eventRepository.findByReservas_IdReserva(reservaId);
     }
+    public String uploadEventImage(Long eventId, MultipartFile file) throws IOException{
+        Event event = eventRepository.findById(eventId)
+                .orElseThrow(() -> new RuntimeException("Evento não encontrado com ID: " + eventId));
 
+        String fileName = UUID.randomUUID().toString() + "_" + file.getOriginalFilename();
+        Path uploadPath = Paths.get(eventUploadDirectory);
+
+        if(!Files.exists(uploadPath)){
+            Files.createDirectories(uploadPath);
+        }
+        Path filePath = uploadPath.resolve(fileName);
+        Files.copy(file.getInputStream(), filePath, StandardCopyOption.REPLACE_EXISTING);
+        event.setFoto(fileName);
+        event.setEventPictureContentType(file.getContentType());
+        eventRepository.save(event);
+        return fileName;
+    }
+    public Resource getEventImage(Long eventId) throws IOException{
+        Event event = eventRepository.findById(eventId)
+                .orElseThrow(() -> new RuntimeException("Evento não encontrado com ID: " + eventId));
+        String fileName = event.getFoto();
+        if(fileName == null || fileName.isEmpty()){
+            throw new RuntimeException("Imagem de evento não encontrada para o ID: " + eventId);
+        }
+        try {
+            Path filePath = Paths.get(eventUploadDirectory).resolve(fileName).normalize();
+            Resource resource = new UrlResource(filePath.toUri());
+            if(resource.exists() && resource.isReadable()){
+                return resource;
+            } else {
+                throw new RuntimeException("Arquivo de imagem do evento não encontrado ou não legível: " + fileName);
+            }
+        } catch (MalformedURLException e){
+            throw new RuntimeException("Erro na URL do recurso da imagem do evento: " + fileName, e);
+        }
+    }
+    public String getEventImageContentType(Long eventId) throws IOException {
+        Event event = eventRepository.findById(eventId)
+                .orElseThrow(() -> new RuntimeException("Evento não encontrado com ID: " + eventId));
+        String contentType = event.getEventPictureContentType();
+        if (contentType == null || contentType.isEmpty()) {
+            String fileName = event.getFoto();
+            if (fileName != null && !fileName.isEmpty()) {
+                Path filePath = Paths.get(eventUploadDirectory).resolve(fileName).normalize();
+                contentType = Files.probeContentType(filePath);
+            }
+            if (contentType == null) {
+                contentType = MediaType.APPLICATION_OCTET_STREAM_VALUE;
+            }
+        }
+        return contentType;
+    }
     private EventDTO convertToDTO(Event event) {
         return new EventDTO(
                 event.getIdEvento(),
@@ -153,7 +219,9 @@ public class EventServiceImpl implements EventService {
                 event.getDescricao(),
                 event.getGeneroMusical(),
                 event.getLocalEvento(),
-                event.getHost()
+                event.getHost(),
+                event.getFoto(),
+                event.getEventPictureContentType()
         );
     }
 }

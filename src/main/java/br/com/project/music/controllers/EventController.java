@@ -5,11 +5,16 @@ import br.com.project.music.business.entities.Event;
 import br.com.project.music.business.repositories.EventRepository;
 import br.com.project.music.services.EventService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.io.Resource;
 import org.springframework.format.annotation.DateTimeFormat;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
+import java.io.IOException;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
@@ -109,7 +114,46 @@ public class EventController {
         EventDTO savedEvent = eventService.createEvent(eventDTO);
         return new ResponseEntity<>(savedEvent, HttpStatus.CREATED);
     }
+    @PostMapping("/{eventId}/upload")
+    public ResponseEntity<?> uploadEventImage(@PathVariable Long eventId, @RequestParam("foto") MultipartFile file) {
+        try {
+            if (file.isEmpty()) {
+                return new ResponseEntity<>("Por favor, selecione um arquivo para upload.", HttpStatus.BAD_REQUEST);
+            }
+            String fileName = eventService.uploadEventImage(eventId, file);
+            return new ResponseEntity<>("Upload de imagem do evento concluído! Nome do arquivo: " + fileName, HttpStatus.OK);
 
+        } catch (RuntimeException e) {
+            return new ResponseEntity<>(e.getMessage(), HttpStatus.NOT_FOUND);
+        } catch (Exception e) {
+            return new ResponseEntity<>("Falha no upload da imagem: " + e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
+    @GetMapping("/{eventId}/image")
+    public ResponseEntity<Resource> getEventImage(@PathVariable Long eventId){
+        try {
+            Resource resource = eventService.getEventImage(eventId);
+            String contentType = eventService.getEventImageContentType(eventId);
+
+            if(contentType == null || contentType.isEmpty()){
+                contentType = MediaType.APPLICATION_OCTET_STREAM_VALUE;
+            }
+            return ResponseEntity.ok()
+                    .contentType(MediaType.parseMediaType(contentType))
+                    .header(HttpHeaders.CONTENT_DISPOSITION, "inline; filename=\"" + resource.getFilename() + "\"")
+                    .body(resource);
+
+        }catch (RuntimeException e) {
+            if (e.getMessage().contains("Evento não encontrado") || e.getMessage().contains("Imagem de evento não encontrada")) {
+                return ResponseEntity.status(HttpStatus.NOT_FOUND).body(null);
+            }
+            System.err.println("Erro ao buscar imagem do evento: " + e.getMessage());
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(null);
+        } catch (IOException e) {
+            System.err.println("Erro de IO ao ler imagem do evento: " + e.getMessage());
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(null);
+        }
+    }
     @PutMapping("/{id}")
     public ResponseEntity<EventDTO> updateEvent(@PathVariable Long id, @RequestBody EventDTO eventDTO) {
         EventDTO updatedEvent = eventService.updateEvent(id, eventDTO);

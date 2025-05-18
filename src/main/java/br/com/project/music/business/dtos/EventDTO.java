@@ -20,4 +20,6 @@ public class EventDTO {
     private Genre generoMusical;
     private Place localEvento;
     private User host;
+    private String foto;
+    private String eventPictureContentType;
 }

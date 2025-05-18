@@ -48,4 +48,10 @@ public class Event {
     @JsonBackReference
     private User host;
 
+    @Column(name = "foto", nullable = true)
+    private String foto;
+
+    @Column(name = "foto_content_type", nullable = true)
+    private String eventPictureContentType;
+
 }

@@ -3,7 +3,10 @@ package br.com.project.music.services;
 import br.com.project.music.business.dtos.EventDTO;
 import br.com.project.music.business.entities.Event;
 import br.com.project.music.business.entities.Reserva;
+import org.springframework.core.io.Resource;
+import org.springframework.web.multipart.MultipartFile;
 
+import java.io.IOException;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
@@ -24,4 +27,7 @@ public interface EventService {
     List<Event> getEventByReserva(Reserva reserva);
     List<Event> findEventsWithReservations();
     List<Event> getEventByReservaId(Long reservaId);
+    String uploadEventImage(Long eventId, MultipartFile file) throws IOException;
+    Resource getEventImage(Long eventId) throws IOException;
+    String getEventImageContentType(Long eventId) throws IOException;
 }

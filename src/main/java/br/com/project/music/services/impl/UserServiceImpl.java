@@ -41,7 +41,7 @@ public class UserServiceImpl implements UserService {
         this.passwordEncoder = passwordEncoder;
     }
 
-    @Value("${file.upload-dir}")
+    @Value("${file.upload.profile-images-dir}")
     private String uploadDirectory;
 
     @Override

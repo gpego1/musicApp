@@ -66,7 +66,7 @@ public class AuthController {
     @Autowired
     private UserRepository userRepository;
 
-    @Value("${file.upload-dir}")
+    @Value("${file.upload.profile-images-dir}")
     private String uploadDirectory;
 
     @PostMapping("/register")
@@ -230,8 +230,8 @@ public class AuthController {
             return new ResponseEntity<>(e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
-    @GetMapping("/user/me/profile-image") // Caminho completo: /auth/user/me/profile-image
-    public ResponseEntity<Resource> getProfileImage(@AuthenticationPrincipal UserDetails userDetails) { // Mudança para Resource
+    @GetMapping("/user/me/profile-image")
+    public ResponseEntity<Resource> getProfileImage(@AuthenticationPrincipal UserDetails userDetails) {
         if (userDetails == null) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
         }
@@ -241,16 +241,14 @@ public class AuthController {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
         }
         User user = userOptional.get();
-        String fileName = user.getFoto(); // Este é APENAS o nome do arquivo, ex: "abc-123_pfp.jpg"
+        String fileName = user.getFoto();
 
         if (fileName == null || fileName.isEmpty()) {
             return ResponseEntity.notFound().build();
         }
         try {
-            // CONSTRÓI O CAMINHO FÍSICO COMPLETO PARA O ARQUIVO NO DISCO
-            Path filePath = Paths.get(uploadDirectory).resolve(fileName).normalize(); // <--- CORREÇÃO AQUI
-            Resource resource = new UrlResource(filePath.toUri()); // Usar Resource para servir arquivos
-
+            Path filePath = Paths.get(uploadDirectory).resolve(fileName).normalize();
+            Resource resource = new UrlResource(filePath.toUri());
             if (resource.exists() && resource.isReadable()) {
                 String contentType = user.getProfilePictureContentType();
                 if (contentType == null || contentType.isEmpty()) {
@@ -275,7 +273,6 @@ public class AuthController {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
         }
     }
-
     @PostMapping("/change-password")
     public ResponseEntity<String> changePassword(HttpServletRequest request, @Valid @RequestBody ChangePasswordDTO changePasswordDTO) {
         String authorizationHeader = request.getHeader("Authorization");
