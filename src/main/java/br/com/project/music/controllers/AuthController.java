@@ -311,6 +311,66 @@ public class AuthController {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
         }
     }
+    @GetMapping("/users/{userId}/profile-image")
+    public ResponseEntity<Resource> getUserProfileImageById(@PathVariable Long userId) {
+        Optional<User> userOptional = userService.getUserEntityById(userId);
+        if (userOptional.isEmpty()) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
+        }
+        User user = userOptional.get();
+        if (user.getGoogleId() != null && !user.getGoogleId().isEmpty() && user.getGoogleProfilePictureUrl() != null && !user.getGoogleProfilePictureUrl().isEmpty()) {
+            try {
+                Resource resource = new UrlResource(user.getGoogleProfilePictureUrl());
+                if (resource.exists() && resource.isReadable()) {
+                    String contentType = "image/jpeg";
+                    String imageUrl = user.getGoogleProfilePictureUrl();
+                    if(imageUrl.endsWith(".png")){
+                        contentType = "image/png";
+                    } else if(imageUrl.endsWith(".gif")){
+                        contentType = "image/gif";
+                    }
+                    return ResponseEntity.ok()
+                            .contentType(MediaType.parseMediaType(contentType))
+                            .header(HttpHeaders.CONTENT_DISPOSITION, "inline; filename=\"google_profile_picture.jpg\"")
+                            .body(resource);
+                } else {
+                    System.err.println("Imagem do Google não encontrada ou não acessível na URL: " + user.getGoogleProfilePictureUrl());
+                }
+            } catch (MalformedURLException ex) {
+                System.err.println("URL da imagem do Google malformada: " + ex.getMessage());
+            }
+        }
+        String fileName = user.getFoto();
+        if (fileName == null || fileName.isEmpty()) {
+            return ResponseEntity.notFound().build();
+        }
+        try {
+            Path filePath = Paths.get(uploadDirectory).resolve(fileName).normalize();
+            Resource resource = new UrlResource(filePath.toUri());
+            if (resource.exists() && resource.isReadable()) {
+                String contentType = user.getProfilePictureContentType();
+                if (contentType == null || contentType.isEmpty()) {
+                    contentType = Files.probeContentType(filePath);
+                    if (contentType == null) {
+                        contentType = "application/octet-stream";
+                    }
+                }
+                return ResponseEntity.ok()
+                        .contentType(MediaType.parseMediaType(contentType))
+                        .header(HttpHeaders.CONTENT_DISPOSITION, "inline; filename=\"" + resource.getFilename() + "\"")
+                        .body(resource);
+            } else {
+                System.err.println("Arquivo de perfil não encontrado ou não legível: " + filePath.toAbsolutePath());
+                return ResponseEntity.notFound().build();
+            }
+        } catch (MalformedURLException ex) {
+            System.err.println("Erro na URL do recurso: " + ex.getMessage());
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+        } catch (IOException e) {
+            System.err.println("Erro de IO ao ler arquivo de perfil: " + e.getMessage());
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+        }
+    }
     @PostMapping("/change-password")
     public ResponseEntity<String> changePassword(HttpServletRequest request, @Valid @RequestBody ChangePasswordDTO changePasswordDTO) {
         String authorizationHeader = request.getHeader("Authorization");

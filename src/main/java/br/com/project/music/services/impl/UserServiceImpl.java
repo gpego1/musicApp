@@ -234,6 +234,9 @@ public class UserServiceImpl implements UserService {
         userRepository.save(user);
         return fileName;
     }
+    public Optional<User> getUserEntityById(Long id){
+        return userRepository.findById(id);
+    }
     private UserDTO convertToDTO(User user) {
         return new UserDTO(
                 user.getId(),

@@ -25,4 +25,5 @@ public interface UserService extends UserDetailsService {
     void changePassword(User user, String newPassword);
     User registerOrLoginGoogleUser(OAuth2User oauthUser);
     String uploadProfileImage(Long userId, MultipartFile file) throws IOException;
+    Optional<User> getUserEntityById(Long id);
 }
