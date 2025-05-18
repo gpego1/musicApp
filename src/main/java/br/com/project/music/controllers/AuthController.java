@@ -1,9 +1,6 @@
 package br.com.project.music.controllers;
 
-import br.com.project.music.business.dtos.Auth;
-import br.com.project.music.business.dtos.ChangePasswordDTO;
-import br.com.project.music.business.dtos.GoogleUserInfo;
-import br.com.project.music.business.dtos.UserDTO;
+import br.com.project.music.business.dtos.*;
 import br.com.project.music.business.entities.User;
 import br.com.project.music.business.repositories.UserRepository;
 import br.com.project.music.services.AuthService;
@@ -86,6 +83,24 @@ public class AuthController {
             return ResponseEntity.ok(token);
         }
         return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+    }
+    @GetMapping("/check-email")
+    public ResponseEntity<?> checkEmailExists(@RequestParam String email) {
+        if (userRepository.findByEmail(email).isPresent()) {
+            return ResponseEntity.ok().build();
+        } else {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Email não encontrado.");
+        }
+    }
+    @PostMapping("/reset-password")
+    public ResponseEntity<String> resetPassword(@Valid @RequestBody ResetPasswordRequest requestDTO){
+        Optional<User> userOptional = userService.getUserByEmail(requestDTO.getEmail());
+        if(userOptional.isEmpty()){
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Email não encontrado.");
+        }
+        User user = userOptional.get();
+        userService.changePassword(user, requestDTO.getNewPassword());
+        return ResponseEntity.ok("Sua senha foi redefinida com sucesso!");
     }
 
     @GetMapping("/oauth2/authorization/google")

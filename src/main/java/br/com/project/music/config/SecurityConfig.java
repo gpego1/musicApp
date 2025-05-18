@@ -46,6 +46,7 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
                         .requestMatchers("/auth/**").permitAll()
                         .requestMatchers("/auth/login").permitAll()
+                        .requestMatchers("/auth/login", "/auth/register", "/auth/check-email", "/auth/change-password").permitAll()
                         .requestMatchers("/oauth2/**").permitAll()
                         .requestMatchers("/oauth2/authorization/google/**").permitAll()
                         .requestMatchers("/login/oauth2/code/google").permitAll()
