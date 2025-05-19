@@ -111,7 +111,6 @@ public class UserServiceImpl implements UserService {
                 .credentialsExpired(false)
                 .build();
     }
-    @Override
     @Transactional
     public UserDTO updateUser(Long id, UserDTO userDTO) {
         User existingUser = userRepository.findById(id)
@@ -126,22 +125,40 @@ public class UserServiceImpl implements UserService {
         if (userDTO.getSenha() != null) {
             existingUser.setSenha(passwordEncoder.encode(userDTO.getSenha()));
         }
-
         if (userDTO.getRole() != null && !userDTO.getRole().equals(existingUser.getRole())) {
             validateRoleChange(existingUser.getRole(), userDTO.getRole());
             existingUser.setRole(userDTO.getRole());
 
-
-            if (userDTO.getRole() == User.Role.ARTISTA && existingUser.getMusico() == null) {
-                Musico musico = new Musico();
-                musico.setUsuario(existingUser);
-                existingUser.setMusico(musico);
+            if (userDTO.getRole() == User.Role.ARTISTA) {
+                Musico musico = existingUser.getMusico();
+                if (musico == null) {
+                    musico = new Musico();
+                    musico.setUsuario(existingUser);
+                    existingUser.setMusico(musico);
+                }
+                if (userDTO.getNomeArtistico() != null) {
+                    musico.setNomeArtistico(userDTO.getNomeArtistico());
+                }
+                if (userDTO.getRedesSociais() != null) {
+                    musico.setRedesSociais(userDTO.getRedesSociais());
+                }
+            } else if (existingUser.getRole() == User.Role.ARTISTA && userDTO.getRole() != User.Role.ARTISTA) {
+                existingUser.setMusico(null);
+            }
+        } else if (userDTO.getRole() == User.Role.ARTISTA) {
+            Musico musico = existingUser.getMusico();
+            if (musico != null) {
+                if (userDTO.getNomeArtistico() != null) {
+                    musico.setNomeArtistico(userDTO.getNomeArtistico());
+                }
+                if (userDTO.getRedesSociais() != null) {
+                    musico.setRedesSociais(userDTO.getRedesSociais());
+                }
             }
         }
         if (userDTO.getProfileCompleted() != null) {
             existingUser.setProfileCompleted(userDTO.getProfileCompleted());
         }
-
         User updatedUser = userRepository.save(existingUser);
         return convertToDTO(updatedUser);
     }
