@@ -7,6 +7,7 @@ import br.com.project.music.business.entities.Musico;
 import br.com.project.music.business.entities.User;
 import br.com.project.music.business.repositories.MusicoRepository;
 import br.com.project.music.business.repositories.UserRepository;
+import br.com.project.music.exceptions.EntityNotFoundException;
 import br.com.project.music.exceptions.ResourceNotFoundException;
 import br.com.project.music.services.UserService;
 import org.apache.coyote.BadRequestException;
@@ -55,45 +56,20 @@ public class UserController {
         }
         return ResponseEntity.notFound().build();
     }
-
     @PutMapping("/{id}")
-    public ResponseEntity<?> updateUser(
-            @PathVariable Long id,
-            @RequestBody Map<String, String> request) {
-        User user = userRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Usuário não encontrado"));
-        String roleStr = request.get("role");
-        if (roleStr != null) {
-            try {
-                user.setRole(User.Role.valueOf(roleStr.toUpperCase()));
-                userRepository.save(user);
-            } catch (IllegalArgumentException e) {
-                throw new RuntimeException("Role inválida: " + roleStr);
-            }
-        }
-        String nameStr = request.get("name");
-        if (nameStr != null) {
-            user.setName(nameStr);
-            userRepository.save(user);
-        }
-        if (roleStr != null && nameStr != null) {
-            return ResponseEntity.ok().body(Map.of(
-                    "message", "Nome atualizado para " + user.getName() + " e Role atualizado para " + user.getRole()
-            ));
-        } else if (roleStr != null) {
-            return ResponseEntity.ok().body(Collections.singletonMap(
-                    "message", "Role atualizado para " + user.getRole()
-            ));
-        } else if (nameStr != null) {
-            return ResponseEntity.ok().body(Collections.singletonMap(
-                    "message", "Nome atualizado para " + user.getName()
-            ));
-        } else {
-            return ResponseEntity.badRequest().body(Collections.singletonMap(
-                    "message", "Nenhum campo para atualizar fornecido (role ou name)"
-            ));
+    public ResponseEntity<?> updateUser(@PathVariable Long id, @RequestBody UserDTO userDTO) {
+        try {
+            UserDTO updatedUser = userService.updateUser(id, userDTO);
+            return ResponseEntity.ok(updatedUser);
+        } catch (EntityNotFoundException e) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(e.getMessage());
+        } catch (IllegalStateException | IllegalArgumentException e) {
+            return ResponseEntity.badRequest().body(e.getMessage());
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Erro interno do servidor: " + e.getMessage());
         }
     }
+
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deleteUser (@PathVariable Long id){
         userService.deleteUser(id);

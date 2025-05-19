@@ -59,6 +59,13 @@ public class User {
     @JsonIgnore
     private List<Event> eventos;
 
+    @Column(nullable = false)
+    private boolean profileCompleted = false;
+
+    public boolean isProfileCompleted() {
+        return profileCompleted;
+    }
+
     public enum Role{
         CLIENT,
         HOST,
@@ -83,4 +90,10 @@ public class User {
     }
     public void setRole(Role role) {this.role = role;}
 
+    public User(String email, Role role, String googleId) {
+        this.email = email;
+        this.role = role;
+        this.googleId = googleId;
+        this.profileCompleted = false;
+    }
 }

@@ -39,6 +39,7 @@ import java.nio.file.Paths;
 import java.sql.Timestamp;
 import java.util.Collections;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 
 @RestController
@@ -116,69 +117,48 @@ public class AuthController {
         try {
             String token = request.get("token");
             if (token == null || token.isEmpty()) {
-                return ResponseEntity.badRequest().body(Map.of(
-                        "error", "Token não fornecido",
-                        "message", "O token do Google é obrigatório"
-                ));
+                return ResponseEntity.badRequest().body(new AuthResponse("Token não fornecido"));
             }
             GoogleUserInfo googleUserInfo = authService.verifyGoogleToken(token);
-            User user = registerOrUpdateGoogleUser(googleUserInfo);
+            User user = userService.registerOrLoginGoogleUser(
+                    new DefaultOAuth2User(
+                            Collections.emptySet(),
+                            Map.of(
+                                    "sub", googleUserInfo.getId(),
+                                    "email", googleUserInfo.getEmail(),
+                                    "name", googleUserInfo.getName(),
+                                    "picture", googleUserInfo.getPicture()
+                            ),
+                            "email"
+                    )
+            );
             String jwtToken = authService.authenticateWithGoogle(token);
-            return ResponseEntity.ok(createAuthResponse(jwtToken, user));
+
+            AuthResponse authResponse = new AuthResponse(
+                    jwtToken,
+                    user.getId(),
+                    user.getName(),
+                    user.getEmail(),
+                    user.getRole(),
+                    user.getGoogleProfilePictureUrl() != null && !user.getGoogleProfilePictureUrl().isEmpty()
+                            ? user.getGoogleProfilePictureUrl()
+                            : (user.getFoto() != null && !user.getFoto().isEmpty()
+                            ? "/users/" + user.getId() + "/profile-image"
+                            : null),
+                    user.getGoogleId() != null,
+                    user.getSenha() != null
+            );
+            return ResponseEntity.ok(authResponse);
         } catch (IllegalArgumentException e) {
             logger.error("Dados do Google incompletos: {}", e.getMessage());
-            return ResponseEntity.badRequest().body(Map.of(
-                    "error", "Dados incompletos",
-                    "message", e.getMessage()
-            ));
+            return ResponseEntity.badRequest().body(new AuthResponse("Dados incompletos: " + e.getMessage()));
         } catch (IllegalStateException e) {
             logger.error("Conflito com conta existente: {}", e.getMessage());
-            return ResponseEntity.status(HttpStatus.CONFLICT).body(Map.of(
-                    "error", "Conflito de conta",
-                    "message", e.getMessage()
-            ));
+            return ResponseEntity.status(HttpStatus.CONFLICT).body(new AuthResponse("Conflito de conta: " + e.getMessage()));
         } catch (Exception e) {
             logger.error("Falha no login com Google", e);
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(Map.of(
-                    "error", "Falha na autenticação",
-                    "message", e.getMessage()
-            ));
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(new AuthResponse("Falha na autenticação: " + e.getMessage()));
         }
-    }
-    private User registerOrUpdateGoogleUser(GoogleUserInfo googleUserInfo) {
-        Map<String, Object> oauthAttributes = Map.of(
-                "sub", googleUserInfo.getId(),
-                "email", googleUserInfo.getEmail(),
-                "name", googleUserInfo.getName(),
-                "picture", googleUserInfo.getPicture()
-        );
-        OAuth2User oauthUser = new DefaultOAuth2User(
-                Collections.emptySet(),
-                oauthAttributes,
-                "email"
-        );
-        User user = userService.registerOrLoginGoogleUser(oauthUser);
-        if(user.getGoogleId() == null) {
-            user.setGoogleId(googleUserInfo.getId());
-            user = userRepository.save(user);
-        }
-        return user;
-    }
-
-    private Map<String, Object> createAuthResponse(String token, User user) {
-        return Map.of(
-                "token", token,
-                "user", Map.of(
-                        "id", user.getId(),
-                        "name", user.getName(),
-                        "email", user.getEmail(),
-                        "role", user.getRole().name(),
-                        "photo", user.getGoogleProfilePictureUrl(),
-                        "isGoogleUser", user.getGoogleId() != null,
-                        "hasPassword", user.getSenha() != null
-
-                )
-        );
     }
     @GetMapping("/login-success")
     public ResponseEntity<String> loginSuccess(OAuth2AuthenticationToken oauthToken) {

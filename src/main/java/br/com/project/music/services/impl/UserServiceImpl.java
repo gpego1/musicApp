@@ -138,6 +138,9 @@ public class UserServiceImpl implements UserService {
                 existingUser.setMusico(musico);
             }
         }
+        if (userDTO.getProfileCompleted() != null) {
+            existingUser.setProfileCompleted(userDTO.getProfileCompleted());
+        }
 
         User updatedUser = userRepository.save(existingUser);
         return convertToDTO(updatedUser);
@@ -183,6 +186,11 @@ public class UserServiceImpl implements UserService {
             if (user.getGoogleId() == null) {
                 user.setGoogleId(googleId);
                 user.setGoogleProfilePictureUrl(picture);
+
+                if (user.getRole() == null ) {
+                    user.setRole(User.Role.CLIENT);
+                }
+
                 return userRepository.save(user);
             } else if (!user.getGoogleId().equals(googleId)) {
                 throw new IllegalStateException("Email already associated with different Google account");
@@ -194,10 +202,18 @@ public class UserServiceImpl implements UserService {
         newUser.setName(name != null ? name : email.split("@")[0]);
         newUser.setGoogleId(googleId);
         newUser.setGoogleProfilePictureUrl(picture);
+        newUser.setFoto(picture);
         newUser.setDataCriacao(Timestamp.from(Instant.now()));
         newUser.setRole(User.Role.CLIENT);
         newUser.setSenha(passwordEncoder.encode(UUID.randomUUID().toString()));
         return userRepository.save(newUser);
+    }
+    @Transactional
+    public User findOrCreateGoogleUser(String email, String googleId) {
+        return userRepository.findByEmail(email).orElseGet(() -> {
+            User newUser = new User(email, User.Role.CLIENT, googleId);
+            return userRepository.save(newUser);
+        });
     }
 
     @Override
@@ -247,7 +263,8 @@ public class UserServiceImpl implements UserService {
                 user.getRole(),
                 user.getMusico() != null ? user.getMusico().getNomeArtistico() : null,
                 user.getMusico() != null ? user.getMusico().getRedesSociais() : null,
-                user.getFoto()
+                user.getFoto(),
+                user.isProfileCompleted()
         );
     }
 }
