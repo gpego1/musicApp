@@ -31,8 +31,7 @@ public class Escala {
     private Genre genero;
 
     @ManyToOne
-    @JoinColumn(name = "id_musico", insertable = false, updatable = false)
-    @JsonIgnore
+    @JoinColumn(name = "id_musico")
     private Musico musico;
 
     @Embeddable
