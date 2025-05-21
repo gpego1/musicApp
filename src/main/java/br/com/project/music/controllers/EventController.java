@@ -88,7 +88,20 @@ public class EventController {
         }
         return ResponseEntity.ok(pastEvents);
     }
-
+    @GetMapping("/{idEvento}/host-id")
+    public ResponseEntity<Long> getHostIdByEvent(@PathVariable Long idEvento) {
+        Optional<Event> eventOptional = eventRepository.findById(idEvento);
+        if(eventOptional.isPresent()){
+            Event event = eventOptional.get();
+            if(event.getHost() != null && event.getHost().getId() != null){
+                return ResponseEntity.ok(event.getHost().getId());
+            } else {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(null);
+            }
+        } else {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(null);
+        }
+    }
 
     @GetMapping("/genre/{genreId}")
     public ResponseEntity<List<Event>> gentEventsByGenre(@PathVariable Long genreId){
