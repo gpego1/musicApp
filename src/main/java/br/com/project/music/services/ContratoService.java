@@ -2,8 +2,10 @@ package br.com.project.music.services;
 import br.com.project.music.business.entities.Contrato;
 import br.com.project.music.business.entities.Contrato.ContratoId;
 import br.com.project.music.business.repositories.ContratoRepository;
+import br.com.project.music.exceptions.ResourceNotFoundException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.Optional;
@@ -26,5 +28,16 @@ public class ContratoService {
 
     public List<Contrato> findByMusicoId(Long musicoId){
         return contratoRepository.findByIdContrato_Musico_IdMusico(musicoId);
+    }
+
+    @Transactional
+    public Contrato activateContrato(ContratoId id) {
+        Contrato contrato = contratoRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Contrato, id: " + id));
+        if(contrato.isStatus()){
+            throw new IllegalStateException("O contrato com ID: " + id + " já está ativado.");
+        }
+        contrato.setStatus(true);
+        return contratoRepository.save(contrato);
     }
 }
