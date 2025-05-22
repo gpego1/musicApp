@@ -34,4 +34,6 @@ public class EscalaService {
     public boolean existsById(EscalaId id) {
         return escalaRepository.existsById(id);
     }
+
+    public List<Escala> getEscalasByEventId(Long eventId) {return escalaRepository.findByIdEscala_Evento_IdEvento(eventId);}
 }
