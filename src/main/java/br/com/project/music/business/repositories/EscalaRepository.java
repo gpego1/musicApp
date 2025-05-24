@@ -9,6 +9,7 @@ import java.util.List;
 
 @Repository
 public interface EscalaRepository extends JpaRepository<Escala, Escala.EscalaId> {
+    Escala findEscalaByIdEscala(Escala.EscalaId idEscala);
     List<Escala> findByIdEscala_Evento(Event evento);
     List<Escala> findByIdEscala_Evento_IdEvento(Long idEvento);
 }

@@ -17,9 +17,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @RestController
@@ -70,33 +68,15 @@ public class EscalaController {
     }
 
     @PostMapping
-    public ResponseEntity<Escala> createEscala(@RequestBody Escala escala) {
-        Escala savedEscala = escalaService.save(escala);
-        return new ResponseEntity<>(savedEscala, HttpStatus.CREATED);
-    }
-    @PostMapping ("/musicos")
-    public ResponseEntity<EscalaResponseDTO> addMusicosToEscala(@RequestBody EscalaRequestDTO request) {
-        Event evento = eventRepository.findById(request.getIdEvento())
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Evento não encontrado"));
-        Genre genero = genreRepository.findById(request.getIdGeneroMusical())
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Gênero Musical não encontrado"));
-
-        EscalaId escalaId = new EscalaId(evento, genero);
-        Escala escala = escalaService.findById(escalaId)
-                .orElse(new Escala(escalaId, new ArrayList<>()));
-
-        List<Musico> novosMusicos = request.getIdsMusicos().stream()
-                .map(musicoId -> musicoRepository.findById(musicoId)
-                        .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Músico com ID " + musicoId + " não encontrado")))
-                .collect(Collectors.toList());
-
-        for (Musico novoMusico : novosMusicos) {
-            if (!escala.getMusicos().contains(novoMusico)) {
-                escala.getMusicos().add(novoMusico);
-            }
+    public ResponseEntity<?> createOrUpdateEscala(@RequestBody Escala escala) {
+        try {
+            Escala savedEscala = escalaService.createOrUpdateEscala(escala);
+            return ResponseEntity.status(HttpStatus.CREATED).body(savedEscala);
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.badRequest().body(e.getMessage());
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Erro interno do servidor: " + e.getMessage());
         }
-        Escala savedEscala = escalaService.save(escala);
-        return new ResponseEntity<>(new EscalaResponseDTO(savedEscala), HttpStatus.CREATED);
     }
 
     @PutMapping("/{idEvento}/{idGeneroMusical}")
