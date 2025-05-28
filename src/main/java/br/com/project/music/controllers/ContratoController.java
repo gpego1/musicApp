@@ -2,7 +2,6 @@ package br.com.project.music.controllers;
 
 import br.com.project.music.business.entities.Contrato;
 import br.com.project.music.business.entities.Contrato.ContratoId;
-
 import br.com.project.music.business.entities.Event;
 import br.com.project.music.business.entities.Musico;
 import br.com.project.music.services.ContratoService;
@@ -31,20 +30,14 @@ public class ContratoController {
     public ResponseEntity<Contrato> getContratoById(
             @PathVariable Long idEvento,
             @PathVariable Long idMusico) {
-        ContratoId id = new ContratoId();
-        Event evento = new Event();
-        evento.setIdEvento(idEvento);
-        Musico musico = new Musico();
-        musico.setIdMusico(idMusico);
-        id.setEvento(evento);
-        id.setMusico(musico);
-
+        ContratoId id = createContratoId(idEvento, idMusico);
         Optional<Contrato> contrato = contratoService.findById(id);
         return contrato.map(ResponseEntity::ok)
                 .orElseGet(() -> ResponseEntity.notFound().build());
     }
+
     @GetMapping("/musico/{musicoId}")
-    public ResponseEntity<List<Contrato>> getContratoByMusicoId(@PathVariable Long musicoId){
+    public ResponseEntity<List<Contrato>> getContratoByMusicoId(@PathVariable Long musicoId) {
         List<Contrato> contratosMusico = contratoService.findByMusicoId(musicoId);
         return ResponseEntity.ok(contratosMusico);
     }
@@ -60,13 +53,7 @@ public class ContratoController {
             @PathVariable Long idEvento,
             @PathVariable Long idMusico,
             @RequestBody Contrato contratoDetails) {
-        ContratoId id = new ContratoId();
-        Event evento = new Event();
-        evento.setIdEvento(idEvento);
-        Musico musico = new Musico();
-        musico.setIdMusico(idMusico);
-        id.setEvento(evento);
-        id.setMusico(musico);
+        ContratoId id = createContratoId(idEvento, idMusico);
 
         Optional<Contrato> existingContrato = contratoService.findById(id);
         if (existingContrato.isPresent()) {
@@ -80,13 +67,7 @@ public class ContratoController {
 
     @DeleteMapping("/{idEvento}/{idMusico}")
     public ResponseEntity<Void> deleteContrato(@PathVariable Long idEvento, @PathVariable Long idMusico) {
-        ContratoId id = new ContratoId();
-        Event evento = new Event();
-        evento.setIdEvento(idEvento);
-        Musico musico = new Musico();
-        musico.setIdMusico(idMusico);
-        id.setEvento(evento);
-        id.setMusico(musico);
+        ContratoId id = createContratoId(idEvento, idMusico);
 
         if (contratoService.existsById(id)) {
             contratoService.deleteById(id);
@@ -94,5 +75,24 @@ public class ContratoController {
         } else {
             return ResponseEntity.notFound().build();
         }
+    }
+
+    @PatchMapping("/{idEvento}/{idMusico}/aprovar")
+    public ResponseEntity<Contrato> aprovarContrato(@PathVariable Long idEvento, @PathVariable Long idMusico) {
+        ContratoId id = createContratoId(idEvento, idMusico);
+        Optional<Contrato> contratoOptional = contratoService.updateStatusToTrue(id);
+        return contratoOptional.map(contrato -> new ResponseEntity<>(contrato, HttpStatus.OK))
+                .orElseGet(() -> new ResponseEntity<>(HttpStatus.NOT_FOUND));
+    }
+
+    private ContratoId createContratoId(Long idEvento, Long idMusico) {
+        ContratoId id = new ContratoId();
+        Event evento = new Event();
+        evento.setIdEvento(idEvento);
+        Musico musico = new Musico();
+        musico.setIdMusico(idMusico);
+        id.setEvento(evento);
+        id.setMusico(musico);
+        return id;
     }
 }

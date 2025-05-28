@@ -21,6 +21,9 @@ public class Contrato {
     @Column(name = "detalhes")
     private String detalhes;
 
+    @Column(nullable = true)
+    private boolean status = false;
+
     @ManyToOne
     @JoinColumn(name = "id_evento", insertable = false, updatable = false)
     @JsonIgnore
@@ -46,10 +49,11 @@ public class Contrato {
         private Musico musico;
 
     }
-    public Contrato(ContratoId idContrato, Double valor, String detalhes) {
+    public Contrato(ContratoId idContrato, Double valor, String detalhes, boolean status) {
         this.idContrato = idContrato;
         this.valor = valor;
         this.detalhes = detalhes;
+        this.status = status;
     }
 }
 
