@@ -8,32 +8,29 @@ import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
 
 import java.io.Serializable;
+import java.util.ArrayList;
+import java.util.List;
 
 @Entity
 @Table(name = "escala")
 @Data
 @NoArgsConstructor
-@AllArgsConstructor
 @EqualsAndHashCode(onlyExplicitlyIncluded = true)
 public class Escala {
     @EmbeddedId
     @EqualsAndHashCode.Include
     private EscalaId idEscala;
 
-    @ManyToOne
-    @JoinColumn(name = "id_evento", insertable = false, updatable = false)
-    @JsonIgnore
-    private Event evento;
-
-    @ManyToOne
-    @JoinColumn(name = "id_genero_musical", insertable = false, updatable = false)
-    @JsonIgnore
-    private Genre genero;
-
-    @ManyToOne
-    @JoinColumn(name = "id_musico", insertable = false, updatable = false)
-    @JsonIgnore
-    private Musico musico;
+    @ManyToMany
+    @JoinTable(
+            name = "escala_musico",
+            joinColumns = {
+                    @JoinColumn(name = "id_evento", referencedColumnName = "id_evento"),
+                    @JoinColumn(name = "id_genero_musical", referencedColumnName = "id_genero_musical")
+            },
+            inverseJoinColumns = @JoinColumn(name = "id_musico", referencedColumnName = "id_musico")
+    )
+    private List<Musico> musicos = new ArrayList<>();
 
     @Embeddable
     @Data
@@ -49,8 +46,8 @@ public class Escala {
         @JoinColumn(name = "id_genero_musical", insertable = false, updatable = false)
         private Genre genero;
     }
-    public Escala(EscalaId idEscala, Musico musico) {
+    public Escala(EscalaId idEscala, List<Musico> musicos) {
         this.idEscala = idEscala;
-        this.musico = musico;
+        this.musicos = musicos;
     }
 }

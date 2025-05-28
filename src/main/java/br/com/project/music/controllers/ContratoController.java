@@ -4,6 +4,7 @@ import br.com.project.music.business.entities.Contrato;
 import br.com.project.music.business.entities.Contrato.ContratoId;
 import br.com.project.music.business.entities.Event;
 import br.com.project.music.business.entities.Musico;
+import br.com.project.music.exceptions.ResourceNotFoundException;
 import br.com.project.music.services.ContratoService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -39,6 +40,9 @@ public class ContratoController {
     @GetMapping("/musico/{musicoId}")
     public ResponseEntity<List<Contrato>> getContratoByMusicoId(@PathVariable Long musicoId) {
         List<Contrato> contratosMusico = contratoService.findByMusicoId(musicoId);
+        if(contratosMusico.isEmpty()){
+            return ResponseEntity.notFound().build();
+        }
         return ResponseEntity.ok(contratosMusico);
     }
 
@@ -62,6 +66,25 @@ public class ContratoController {
             return ResponseEntity.ok(updatedContrato);
         } else {
             return ResponseEntity.notFound().build();
+        }
+    }
+    @PutMapping("/{idEvento}/{idMusico}/activate")
+    public ResponseEntity<Contrato> ativarContrato(@PathVariable Long idEvento, @PathVariable Long idMusico){
+        ContratoId id = new ContratoId();
+        Event evento = new Event();
+        evento.setIdEvento(idEvento);
+        Musico musico = new Musico();
+        musico.setIdMusico(idMusico);
+        id.setEvento(evento);
+        id.setMusico(musico);
+
+        try {
+            Contrato activeContrato = contratoService.activateContrato(id);
+            return ResponseEntity.ok(activeContrato);
+        } catch(ResourceNotFoundException e){
+            return ResponseEntity.notFound().build();
+        } catch(IllegalArgumentException e){
+            return ResponseEntity.status(HttpStatus.CONFLICT).body(null);
         }
     }
 

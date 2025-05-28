@@ -64,7 +64,7 @@ public class SecurityConfig {
                         .requestMatchers("/notifications/**").permitAll()
                         .requestMatchers("/notifications/{id}").permitAll()
                         .requestMatchers("/contratos/**").permitAll()
-                        .requestMatchers(HttpMethod.PATCH, "/contratos/{idEvento}/{idMusico}/aprovar").permitAll()
+                        .requestMatchers(HttpMethod.PUT, "/contratos/{idEvento}/{idMusico}/activate").permitAll()
                         .requestMatchers("/escalas/**").permitAll()
                         .anyRequest().authenticated()
                 )

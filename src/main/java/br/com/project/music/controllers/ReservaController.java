@@ -2,12 +2,15 @@
 package br.com.project.music.controllers;
 
 import br.com.project.music.business.dtos.ReservaDTO;
+import br.com.project.music.business.entities.Reserva;
+import br.com.project.music.business.repositories.ReservaRepository;
 import br.com.project.music.services.ReservaService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 
@@ -17,6 +20,9 @@ public class ReservaController {
 
     @Autowired
     private ReservaService reservaService;
+
+    @Autowired
+    private ReservaRepository reservaRepository;
 
     @PostMapping
     public ResponseEntity<ReservaDTO> createReserva(@RequestBody ReservaDTO reservaDTO) {
@@ -77,6 +83,18 @@ public class ReservaController {
             return new ResponseEntity<>(HttpStatus.NO_CONTENT);
         }
         return new ResponseEntity<>(confirmedReservas, HttpStatus.OK);
+    }
+    @GetMapping("/user/{userId}/confirmed/past")
+    public ResponseEntity<List<Reserva>> getReservasPassadasConfirmadasByUsuario(@PathVariable("userId") Long userId){
+        if(userId == null){
+            return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+        }
+        LocalDateTime now = LocalDateTime.now();
+        List<Reserva> reservas = reservaRepository.findByUsuarioIdAndEventoDataHoraBeforeAndConfirmadoTrue(userId, now);
+        if(reservas == null){
+            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+        }
+        return new ResponseEntity<>(reservas, HttpStatus.OK);
     }
 
     @GetMapping("/evento/{eventoId}")
