@@ -35,7 +35,7 @@ public class NotificationController {
     private UserRepository userRepository;
 
 
-  @GetMapping
+    @GetMapping
     public ResponseEntity<List<Notification>> getAllNotifications() {
         List<Notification> notifications = notificationService.getAllNotifications();
         return new ResponseEntity<>(notifications, HttpStatus.OK);
@@ -50,8 +50,8 @@ public class NotificationController {
 
     @GetMapping("user/{userId}")
     public ResponseEntity<List<Notification>> getNotificationsByUserId(@PathVariable Long userId){
-      List<Notification> notifications = notificationService.getNotificationsByUserId(userId);
-      return new ResponseEntity<>(notifications, HttpStatus.OK);
+        List<Notification> notifications = notificationService.getNotificationsByUserId(userId);
+        return new ResponseEntity<>(notifications, HttpStatus.OK);
     }
 
     @PostMapping
@@ -68,7 +68,7 @@ public class NotificationController {
     @PreAuthorize("hasRole('HOST')")
     public ResponseEntity<String> sendBroadcastNotification(@RequestBody NotificationRequest request) {
 
-      Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         String username = authentication.getName();
 
         System.out.println("Usuário " + username + " (com roles: " + authentication.getAuthorities().stream().map(g -> g.getAuthority()).collect(Collectors.joining(", ")) + ") está tentando enviar uma notificação de broadcast.");
