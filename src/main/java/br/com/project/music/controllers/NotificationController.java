@@ -1,6 +1,5 @@
 package br.com.project.music.controllers;
 
-import br.com.project.music.business.dtos.Auth;
 import br.com.project.music.business.dtos.NotificationRequest;
 import br.com.project.music.business.entities.Notification;
 
@@ -8,6 +7,7 @@ import br.com.project.music.business.entities.User;
 import br.com.project.music.business.repositories.NotificationRepository;
 import br.com.project.music.business.repositories.UserRepository;
 import br.com.project.music.services.NotificationService;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -15,14 +15,14 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
-
-import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/notifications")
+@Tag(name="Notificações", description = "Gerenciamento de notificações")
+
 public class NotificationController {
 
     @Autowired

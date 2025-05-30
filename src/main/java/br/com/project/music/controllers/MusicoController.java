@@ -2,6 +2,7 @@ package br.com.project.music.controllers;
 
 import br.com.project.music.business.dtos.MusicoDTO;
 import br.com.project.music.services.MusicoService;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.HttpStatusCode;
@@ -13,6 +14,8 @@ import java.util.Optional;
 
 @RestController
 @RequestMapping("/musicos")
+@Tag(name="Músicos", description = "Gerenciamento de músicos")
+
 public class MusicoController {
     private final MusicoService musicoService;
 

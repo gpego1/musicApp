@@ -2,6 +2,7 @@ package br.com.project.music.controllers;
 
 import br.com.project.music.business.entities.Genre;
 import br.com.project.music.services.GenreService;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -13,6 +14,7 @@ import java.util.Optional;
 
 @RestController
 @RequestMapping("/genres")
+@Tag(name = "Gêneros Musicais", description = "Gerenciamento de gêneros musicais")
 public class GenreController {
 
     private final GenreService genreService;

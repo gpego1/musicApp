@@ -7,6 +7,7 @@ import br.com.project.music.business.entities.Event;
 import br.com.project.music.business.entities.Musico;
 import br.com.project.music.exceptions.ResourceNotFoundException;
 import br.com.project.music.services.ContratoService;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -17,6 +18,8 @@ import java.util.Optional;
 
 @RestController
 @RequestMapping("/contratos")
+@Tag(name = "Contratos", description = "Gerenciamento de contratos entre músicos e eventos")
+
 public class ContratoController {
 
     @Autowired

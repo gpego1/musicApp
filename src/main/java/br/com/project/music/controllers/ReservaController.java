@@ -5,6 +5,7 @@ import br.com.project.music.business.dtos.ReservaDTO;
 import br.com.project.music.business.entities.Reserva;
 import br.com.project.music.business.repositories.ReservaRepository;
 import br.com.project.music.services.ReservaService;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -16,6 +17,8 @@ import java.util.Optional;
 
 @RestController
 @RequestMapping("/reservas")
+@Tag(name="Reservas", description = "Gerenciamento de reservas para eventos")
+
 public class ReservaController {
 
     @Autowired

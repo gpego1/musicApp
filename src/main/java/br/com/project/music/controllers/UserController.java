@@ -10,6 +10,7 @@ import br.com.project.music.business.repositories.UserRepository;
 import br.com.project.music.exceptions.EntityNotFoundException;
 import br.com.project.music.exceptions.ResourceNotFoundException;
 import br.com.project.music.services.UserService;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import org.apache.coyote.BadRequestException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -26,6 +27,8 @@ import java.util.Map;
 
 @RestController
 @RequestMapping("/users")
+@Tag(name="Usuários", description = "Gerenciamento de usuários do sistema")
+
 public class UserController {
 
     @Autowired

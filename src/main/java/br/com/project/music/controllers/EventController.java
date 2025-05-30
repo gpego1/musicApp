@@ -6,6 +6,7 @@ import br.com.project.music.business.entities.User;
 import br.com.project.music.business.repositories.EventRepository;
 import br.com.project.music.business.repositories.UserRepository;
 import br.com.project.music.services.EventService;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.Resource;
 import org.springframework.format.annotation.DateTimeFormat;
@@ -23,6 +24,7 @@ import java.util.Optional;
 
 @RestController
 @RequestMapping("/eventos")
+@Tag(name="Eventos", description = "Gerenciamento de eventos")
 public class EventController {
     private final EventService eventService;
     private final EventRepository eventRepository;

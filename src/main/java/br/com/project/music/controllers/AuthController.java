@@ -4,6 +4,7 @@ import br.com.project.music.business.entities.User;
 import br.com.project.music.business.repositories.UserRepository;
 import br.com.project.music.services.AuthService;
 import br.com.project.music.services.UserService;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.UrlResource;
 import jakarta.servlet.http.HttpServletRequest;
@@ -39,6 +40,7 @@ import java.util.Optional;
 
 @RestController
 @RequestMapping("/auth")
+@Tag(name = "Autentificacao")
 public class AuthController {
 
     private static final Logger logger = LoggerFactory.getLogger(AuthController.class);

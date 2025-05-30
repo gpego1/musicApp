@@ -2,6 +2,7 @@ package br.com.project.music.controllers;
 
 import br.com.project.music.business.entities.Place;
 import br.com.project.music.services.PlaceService;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -13,6 +14,8 @@ import java.util.Optional;
 
 @RestController
 @RequestMapping("/places")
+@Tag(name="Lugares", description = "Gerenciamento de lugares onde eventos podem ocorrer")
+
 public class PlaceController {
 
     private final PlaceService placeService;

@@ -11,6 +11,7 @@ import br.com.project.music.business.repositories.EventRepository;
 import br.com.project.music.business.repositories.GenresRepository;
 import br.com.project.music.business.repositories.MusicoRepository;
 import br.com.project.music.services.EscalaService;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -22,6 +23,7 @@ import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/escalas")
+@Tag(name="Escalas", description = "Gerenciamento de escalas de músicos para eventos")
 public class EscalaController {
 
     @Autowired

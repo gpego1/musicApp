@@ -3,6 +3,7 @@ package br.com.project.music.controllers;
 import br.com.project.music.business.dtos.AvaliacaoRequestDTO;
 import br.com.project.music.business.entities.Avaliacao;
 import br.com.project.music.services.AvaliacaoService;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -13,6 +14,7 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/avaliacoes")
+@Tag(name = "Avaliações", description = "Gerenciamento de avaliações de eventos")
 public class AvaliacaoController {
 
     private final AvaliacaoService avaliacaoService;
