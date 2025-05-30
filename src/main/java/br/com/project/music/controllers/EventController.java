@@ -50,9 +50,22 @@ public class EventController {
             return new ResponseEntity<>(HttpStatus.NOT_FOUND);
         }
     }
-    @GetMapping("/nomeEvento")
+    @GetMapping("/search")
     public List<Event> findByNomeEventoContaining(@RequestParam String nomeEvento) {
-        return eventRepository.findByNomeEventoContaining(nomeEvento);
+        List<Event> events;
+        if (nomeEvento == null || nomeEvento.isEmpty()) {
+            events = eventRepository.findAll();
+        } else {
+            events = eventRepository.findByNomeEventoContaining(nomeEvento);
+        }
+        for (Event event : events) {
+            if (event.getIdEvento() != null) {
+                event.setFoto("/eventos/" + event.getIdEvento() + "/image");
+            } else {
+                event.setFoto(null);
+            }
+        }
+        return events;
     }
 
     @GetMapping("/host/{hostId}")
