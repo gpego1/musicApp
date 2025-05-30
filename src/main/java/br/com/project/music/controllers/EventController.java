@@ -48,7 +48,7 @@ public class EventController {
             return new ResponseEntity<>(event, HttpStatus.OK);
         } else {
             return new ResponseEntity<>(HttpStatus.NOT_FOUND);
-        }git
+        }
     }
     @GetMapping("/nomeEvento")
     public List<Event> findByNomeEventoContaining(@RequestParam String nomeEvento) {
