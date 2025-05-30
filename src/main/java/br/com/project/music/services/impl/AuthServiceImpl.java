@@ -60,7 +60,7 @@ public class AuthServiceImpl implements AuthService {
             return Jwts.builder()
                     .setSubject(user.getEmail())
                     .setExpiration(new Date(System.currentTimeMillis() + 86400000))
-                    .signWith(getSigningKey()) // Use getSigningKey()
+                    .signWith(getSigningKey())
                     .compact();
         }
         return null;
@@ -72,7 +72,7 @@ public class AuthServiceImpl implements AuthService {
         return Jwts.builder()
                 .setSubject(email)
                 .setExpiration(new Date(System.currentTimeMillis() + 86400000))
-                .signWith(getSigningKey()) // Use getSigningKey()
+                .signWith(getSigningKey())
                 .compact();
     }
     public GoogleUserInfo verifyGoogleToken(String idToken) {

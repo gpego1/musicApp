@@ -1,29 +1,16 @@
 package br.com.project.music.controllers;
-
-import br.com.project.music.business.dtos.ArtistUpdateRequest;
-import br.com.project.music.business.dtos.Auth;
 import br.com.project.music.business.dtos.UserDTO;
-import br.com.project.music.business.entities.Musico;
-import br.com.project.music.business.entities.User;
 import br.com.project.music.business.repositories.MusicoRepository;
 import br.com.project.music.business.repositories.UserRepository;
 import br.com.project.music.exceptions.EntityNotFoundException;
-import br.com.project.music.exceptions.ResourceNotFoundException;
 import br.com.project.music.services.UserService;
 import io.swagger.v3.oas.annotations.tags.Tag;
-import org.apache.coyote.BadRequestException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.multipart.MultipartFile;
-
-import java.io.IOException;
-import java.util.Collections;
 import java.util.List;
-import java.util.Map;
+
 
 @RestController
 @RequestMapping("/users")
