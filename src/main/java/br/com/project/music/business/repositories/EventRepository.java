@@ -20,6 +20,8 @@ public interface EventRepository extends JpaRepository<Event, Long> {
     List<Event> findByHost(User host);
     List<Event> findByGeneroMusical(Genre generoMusical);
 
+    List<Event> findByNomeEventoContaining(String nomeEvento);
+
     @Query("SELECT e FROM Event e WHERE DATE(e.dataHora) = DATE(:data)")
     List<Event> findByData(@Param("data") LocalDateTime data);
     List<Event> findByDataHoraAfter(LocalDateTime now);
