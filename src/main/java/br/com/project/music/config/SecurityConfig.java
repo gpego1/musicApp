@@ -1,5 +1,4 @@
 package br.com.project.music.config;
-
 import br.com.project.music.config.filters.JwtAuthenticationFilter;
 import br.com.project.music.services.UserService;
 import lombok.RequiredArgsConstructor;
@@ -22,13 +21,6 @@ import org.springframework.security.web.authentication.AuthenticationFailureHand
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.security.web.authentication.SimpleUrlAuthenticationSuccessHandler;
 import org.springframework.security.web.authentication.SimpleUrlAuthenticationFailureHandler;
-import org.springframework.web.cors.CorsConfiguration;
-import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
-import org.springframework.web.filter.CorsFilter;
-
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.List;
 
 @Configuration
 @EnableWebSecurity
