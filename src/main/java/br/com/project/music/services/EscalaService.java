@@ -4,7 +4,7 @@ import br.com.project.music.business.entities.Escala;
 import br.com.project.music.business.entities.Escala.EscalaId;
 import br.com.project.music.business.entities.Musico;
 import br.com.project.music.business.repositories.EscalaRepository;
-import jakarta.transaction.Transactional;
+import jakarta.transaction.Transactional; // Use este import para @Transactional
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -18,15 +18,22 @@ public class EscalaService {
     @Autowired
     private EscalaRepository escalaRepository;
 
+    @Transactional
     public List<Escala> findAll() {
-        return escalaRepository.findAll();
-    }
-
-    public Optional<Escala> findById(EscalaId id) {
-        return escalaRepository.findById(id);
+        return escalaRepository.findAllWithMusicos();
     }
 
     @Transactional
+    public Optional<Escala> findById(EscalaId id) {
+        return escalaRepository.findByIdWithMusicos(id);
+    }
+
+    @Transactional
+    public List<Escala> getEscalasByEventId(Long eventId) {
+        return escalaRepository.findEscalasByEventIdWithMusicos(eventId);
+    }
+
+    @Transactional // A anotação @Transactional é importante para operações de escrita
     public Escala createOrUpdateEscala(Escala novaEscala) {
         if (novaEscala.getIdEscala() == null ||
                 novaEscala.getIdEscala().getEvento() == null ||
@@ -57,17 +64,18 @@ public class EscalaService {
         }
     }
 
+    @Transactional
     public Escala save(Escala escala) {
         return escalaRepository.save(escala);
     }
 
+    @Transactional
     public void deleteById(EscalaId id) {
         escalaRepository.deleteById(id);
     }
 
+    @Transactional
     public boolean existsById(EscalaId id) {
         return escalaRepository.existsById(id);
     }
-
-    public List<Escala> getEscalasByEventId(Long eventId) {return escalaRepository.findByIdEscala_Evento_IdEvento(eventId);}
 }

@@ -1,6 +1,7 @@
 package br.com.project.music.business.entities;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -30,6 +31,7 @@ public class Escala {
             },
             inverseJoinColumns = @JoinColumn(name = "id_musico", referencedColumnName = "id_musico")
     )
+    @JsonManagedReference
     private List<Musico> musicos = new ArrayList<>();
 
     @Embeddable
@@ -39,11 +41,11 @@ public class Escala {
     @EqualsAndHashCode
     public static class EscalaId implements Serializable {
         @ManyToOne
-        @JoinColumn(name = "id_evento", insertable = false, updatable = false)
+        @JoinColumn(name = "id_evento")
         private Event evento;
 
         @ManyToOne
-        @JoinColumn(name = "id_genero_musical", insertable = false, updatable = false)
+        @JoinColumn(name = "id_genero_musical")
         private Genre genero;
     }
     public Escala(EscalaId idEscala, List<Musico> musicos) {

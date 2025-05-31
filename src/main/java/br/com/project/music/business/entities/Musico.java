@@ -1,7 +1,11 @@
 package br.com.project.music.business.entities;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.*;
+
+import java.util.List;
 
 @Entity
 @Table(name = "musico")
@@ -24,6 +28,9 @@ public class Musico {
     @Column(name = "redes_sociais")
     private String redesSociais;
 
+    @ManyToMany(mappedBy = "musicos")
+    @JsonBackReference
+    private List<Escala> escalas;
 
 
 }

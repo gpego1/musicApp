@@ -8,6 +8,7 @@ import jakarta.persistence.*;
 import lombok.*;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 
 @Entity
@@ -45,6 +46,10 @@ public class Event {
     @OneToMany(mappedBy = "evento")
     @JsonIgnore
     private List<Reserva> reservas;
+
+    @OneToMany(mappedBy = "idEscala.evento", cascade = CascadeType.ALL, orphanRemoval = true)
+    @JsonIgnore
+    private List<Escala> escalasDoEvento = new ArrayList<>();
 
     @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "id_usuario_host", nullable = false)

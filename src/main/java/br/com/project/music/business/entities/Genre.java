@@ -1,7 +1,11 @@
 package br.com.project.music.business.entities;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.*;
+
+import java.util.ArrayList;
+import java.util.List;
 
 @Entity
 @Table(name = "genero_musical")
@@ -17,4 +21,8 @@ public class Genre {
 
     @Column(name="nomeGenero", nullable = false)
     private String nomeGenero;
+
+    @OneToMany(mappedBy = "idEscala.genero", cascade = CascadeType.ALL, orphanRemoval = true)
+    @JsonIgnore
+    private List<Escala> escalasDoGenero = new ArrayList<>();
 }
