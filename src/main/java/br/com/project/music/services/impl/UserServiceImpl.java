@@ -3,11 +3,8 @@ import br.com.project.music.business.dtos.UserDTO;
 import br.com.project.music.business.entities.Musico;
 import br.com.project.music.business.entities.User;
 import br.com.project.music.business.repositories.UserRepository;
-import br.com.project.music.exceptions.OptimisticLockException;
 import br.com.project.music.services.UserService;
 import jakarta.persistence.EntityNotFoundException;
-
-import org.hibernate.StaleObjectStateException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.userdetails.UserDetails;

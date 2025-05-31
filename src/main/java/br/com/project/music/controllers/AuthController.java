@@ -71,6 +71,7 @@ public class AuthController {
         auth.setEmail(userDTO.getEmail());
         auth.setSenha(userDTO.getSenha());
         String token = authService.authenticate(auth);
+        logger.trace("Token: " + token);
         return ResponseEntity.status(HttpStatus.CREATED).body(createdUser);
     }
 
@@ -78,6 +79,7 @@ public class AuthController {
     public ResponseEntity<String> login(@Valid @RequestBody Auth auth) {
         String token = authService.authenticate(auth);
         if (token != null) {
+            logger.trace("Usuario autenticado: " + auth.getEmail());
             return ResponseEntity.ok(token);
         }
         return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
