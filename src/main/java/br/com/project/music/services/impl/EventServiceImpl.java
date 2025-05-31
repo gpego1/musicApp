@@ -215,6 +215,7 @@ public class EventServiceImpl implements EventService {
                 event.getNomeEvento(),
                 event.getDataHora(),
                 event.getDescricao(),
+                event.getClassificacao(),
                 event.getGeneroMusical(),
                 event.getLocalEvento(),
                 event.getHost(),

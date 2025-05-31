@@ -17,6 +17,7 @@ public class EventDTO {
     private String nomeEvento;
     private LocalDateTime dataHora;
     private String descricao;
+    private String classificacao;
     private Genre generoMusical;
     private Place localEvento;
     private User host;

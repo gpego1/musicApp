@@ -31,6 +31,9 @@ public class Event {
     @Column(name = "descricao")
     private String descricao;
 
+    @Column(name = "classificacao", nullable = false)
+    private String classificacao;
+
     @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "id_genero_musical")
     private Genre generoMusical;
