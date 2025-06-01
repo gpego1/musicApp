@@ -9,6 +9,7 @@ import lombok.NoArgsConstructor;
 
 import java.sql.Time;
 import java.time.LocalDateTime;
+import java.time.LocalTime;
 
 @NoArgsConstructor
 @AllArgsConstructor
@@ -17,7 +18,7 @@ public class EventDTO {
     private Long idEvento;
     private String nomeEvento;
     private LocalDateTime dataHora;
-    private LocalDateTime horaEncerramento;
+    private LocalTime horaEncerramento;
     private String descricao;
     private String classificacao;
     private Genre generoMusical;

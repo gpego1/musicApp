@@ -9,6 +9,7 @@ import lombok.*;
 
 import java.sql.Time;
 import java.time.LocalDateTime;
+import java.time.LocalTime;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -31,7 +32,7 @@ public class Event {
     private LocalDateTime dataHora;
 
     @Column(name = "hora_encerramento", nullable = true)
-    private LocalDateTime horaEncerramento;
+    private LocalTime horaEncerramento;
 
     @Column(name = "descricao")
     private String descricao;
@@ -67,11 +68,5 @@ public class Event {
     @Column(name = "foto_content_type", nullable = true)
     private String eventPictureContentType;
 
-    public boolean isContractTimeWithinEvent(LocalDateTime contractStartTime, LocalDateTime contractEndTime) {
-        if (contractStartTime == null || contractEndTime == null || dataHora == null || horaEncerramento == null) {
-            return false;
-        }
-        return !contractStartTime.isBefore(this.dataHora) && !contractEndTime.isAfter(this.horaEncerramento);
-    }
 
 }

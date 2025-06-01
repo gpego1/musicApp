@@ -1,21 +1,18 @@
 package br.com.project.music.controllers;
-
 import br.com.project.music.business.entities.Contrato;
 import br.com.project.music.business.entities.Contrato.ContratoId;
 import br.com.project.music.business.entities.Event;
 import br.com.project.music.business.entities.Musico;
 import br.com.project.music.exceptions.ResourceNotFoundException;
 import br.com.project.music.services.ContratoService;
-import br.com.project.music.business.repositories.EventRepository; // Adicionado para buscar Event
-import br.com.project.music.business.repositories.MusicoRepository; // Adicionado para buscar Musico
-
+import br.com.project.music.business.repositories.EventRepository;
+import br.com.project.music.business.repositories.MusicoRepository;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
-
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -68,10 +65,8 @@ public class ContratoController {
     }
 
     @PostMapping
-    public ResponseEntity<Object> createContrato(@RequestBody Contrato contrato) { // Recebe Contrato diretamente
+    public ResponseEntity<Object> createContrato(@RequestBody Contrato contrato) {
         try {
-            // No POST, o Jackson já deve ter populado o ContratoId com objetos Event e Musico
-            // que contêm apenas os IDs. O Service irá buscar as entidades gerenciadas.
             Contrato savedContrato = contratoService.save(contrato);
             return new ResponseEntity<>(savedContrato, HttpStatus.CREATED);
         } catch (ResourceNotFoundException e) {
@@ -93,26 +88,21 @@ public class ContratoController {
     public ResponseEntity<Object> updateContrato(
             @PathVariable Long idEvento,
             @PathVariable Long idMusico,
-            @RequestBody Contrato contratoDetails) { // Recebe Contrato diretamente
+            @RequestBody Contrato contratoDetails) {
 
         try {
-            // Busca as entidades gerenciadas de Evento e Músico pelos IDs
             Event evento = eventRepository.findById(idEvento)
                     .orElseThrow(() -> new ResourceNotFoundException("Evento não encontrado com ID: " + idEvento));
             Musico musico = musicoRepository.findById(idMusico)
                     .orElseThrow(() -> new ResourceNotFoundException("Músico não encontrado com ID: " + idMusico));
 
-            // Cria o ContratoId para buscar o contrato existente
             ContratoId contratoId = new ContratoId(evento, musico);
 
-            // Tenta buscar o contrato existente
             Contrato contratoToUpdate = contratoService.findById(contratoId)
                     .orElseThrow(() -> new ResourceNotFoundException("Contrato não encontrado para Evento ID: " + idEvento + " e Músico ID: " + idMusico));
 
-            // Atualiza os campos do contrato existente com os dados recebidos
             contratoToUpdate.setValor(contratoDetails.getValor());
             contratoToUpdate.setDetalhes(contratoDetails.getDetalhes());
-            // O status pode ser atualizado se vier no corpo da requisição
             contratoToUpdate.setStatus(contratoDetails.isStatus());
 
             Contrato updatedContrato = contratoService.save(contratoToUpdate);
@@ -135,7 +125,6 @@ public class ContratoController {
     @PutMapping("/{idEvento}/{idMusico}/activate")
     public ResponseEntity<Object> ativarContrato(@PathVariable Long idEvento, @PathVariable Long idMusico){
         try {
-            // Busca as entidades gerenciadas de Evento e Músico pelos IDs
             Event evento = eventRepository.findById(idEvento)
                     .orElseThrow(() -> new ResourceNotFoundException("Evento não encontrado com ID: " + idEvento));
             Musico musico = musicoRepository.findById(idMusico)
@@ -162,15 +151,12 @@ public class ContratoController {
     @DeleteMapping("/{idEvento}/{idMusico}")
     public ResponseEntity<Object> deleteContrato(@PathVariable Long idEvento, @PathVariable Long idMusico) {
         try {
-            // Busca as entidades gerenciadas de Evento e Músico pelos IDs
             Event evento = eventRepository.findById(idEvento)
                     .orElseThrow(() -> new ResourceNotFoundException("Evento não encontrado com ID: " + idEvento));
             Musico musico = musicoRepository.findById(idMusico)
                     .orElseThrow(() -> new ResourceNotFoundException("Músico não encontrado com ID: " + idMusico));
 
             ContratoId id = new ContratoId(evento, musico);
-
-            // Verifica se o contrato existe antes de tentar deletar
             if (!contratoService.existsById(id)) {
                 throw new ResourceNotFoundException("Contrato não encontrado para Evento ID: " + idEvento + " e Músico ID: " + idMusico);
             }
