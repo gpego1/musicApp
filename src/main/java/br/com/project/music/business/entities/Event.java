@@ -51,9 +51,6 @@ public class Event {
     @JsonIgnore
     private List<Reserva> reservas;
 
-    @OneToMany(mappedBy = "idContrato.evento", cascade = CascadeType.ALL, orphanRemoval = true)
-    @JsonIgnore
-    private List<Contrato> contratosDoEvento = new ArrayList<>();
 
     @OneToMany(mappedBy = "idEscala.evento", cascade = CascadeType.ALL, orphanRemoval = true)
     @JsonIgnore

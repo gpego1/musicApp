@@ -29,12 +29,9 @@ public class Musico {
     @Column(name = "redes_sociais")
     private String redesSociais;
 
-    @OneToMany(mappedBy = "idContrato.musico", cascade = CascadeType.ALL, orphanRemoval = true)
-    @JsonBackReference
-    private List<Contrato> contratos = new ArrayList<>();
 
     @ManyToMany(mappedBy = "musicos")
-    @JsonBackReference
+    @JsonIgnore
     private List<Escala> escalas;
 
 
