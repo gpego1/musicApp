@@ -45,17 +45,13 @@ public class EscalaController {
     }
 
     @GetMapping("/{idEvento}/{idGeneroMusical}")
-    public ResponseEntity<EscalaResponseDTO> getEscalaById(
-                                                            @PathVariable Long idEvento,
-                                                            @PathVariable Long idGeneroMusical) {
-
+    public ResponseEntity<EscalaResponseDTO> getEscalaById(@PathVariable Long idEvento, @PathVariable Long idGeneroMusical) {
         Event evento = eventRepository.findById(idEvento)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Evento não encontrado com ID: " + idEvento));
         Genre genero = genreRepository.findById(idGeneroMusical)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Gênero Musical não encontrado com ID: " + idGeneroMusical));
 
         EscalaId id = new EscalaId(evento, genero);
-
         Optional<Escala> escala = escalaService.findById(id);
         return escala.map(e -> ResponseEntity.ok(new EscalaResponseDTO(e)))
                 .orElseGet(() -> ResponseEntity.notFound().build());
@@ -74,7 +70,7 @@ public class EscalaController {
     }
 
     @PostMapping
-    public ResponseEntity<EscalaResponseDTO> createEscala(@RequestBody EscalaRequestDTO request) { // Altere para EscalaRequestDTO
+    public ResponseEntity<EscalaResponseDTO> createEscala(@RequestBody EscalaRequestDTO request) {
         try {
             Event evento = eventRepository.findById(request.getIdEvento())
                     .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Evento não encontrado com ID: " + request.getIdEvento()));

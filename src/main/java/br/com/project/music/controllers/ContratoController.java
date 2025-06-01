@@ -1,8 +1,6 @@
 package br.com.project.music.controllers;
-
 import br.com.project.music.business.entities.Contrato;
 import br.com.project.music.business.entities.Contrato.ContratoId;
-
 import br.com.project.music.business.entities.Event;
 import br.com.project.music.business.entities.Musico;
 import br.com.project.music.exceptions.ResourceNotFoundException;
@@ -12,9 +10,10 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-
+import java.util.HashMap;
 import java.util.List;
-import java.util.Optional;
+import java.util.Map;
+import java.time.LocalDateTime;
 
 @RestController
 @RequestMapping("/contratos")
@@ -43,10 +42,14 @@ public class ContratoController {
         id.setEvento(evento);
         id.setMusico(musico);
 
-        Optional<Contrato> contrato = contratoService.findById(id);
-        return contrato.map(ResponseEntity::ok)
-                .orElseGet(() -> ResponseEntity.notFound().build());
+        try {
+            Contrato contrato = contratoService.getHorarioByEventoAndMusico(idEvento, idMusico);
+            return ResponseEntity.ok(contrato);
+        } catch (ResourceNotFoundException e) {
+            return ResponseEntity.notFound().build();
+        }
     }
+
     @GetMapping("/musico/{musicoId}")
     public ResponseEntity<List<Contrato>> getContratoByMusicoId(@PathVariable Long musicoId){
         List<Contrato> contratosMusico = contratoService.findByMusicoId(musicoId);
@@ -58,8 +61,12 @@ public class ContratoController {
 
     @PostMapping
     public ResponseEntity<Contrato> createContrato(@RequestBody Contrato contrato) {
-        Contrato savedContrato = contratoService.save(contrato);
-        return new ResponseEntity<>(savedContrato, HttpStatus.CREATED);
+        try {
+            Contrato savedContrato = contratoService.save(contrato);
+            return new ResponseEntity<>(savedContrato, HttpStatus.CREATED);
+        } catch (IllegalArgumentException | ResourceNotFoundException e) {
+            return ResponseEntity.badRequest().body(null);
+        }
     }
 
     @PutMapping("/{idEvento}/{idMusico}")
@@ -67,23 +74,27 @@ public class ContratoController {
             @PathVariable Long idEvento,
             @PathVariable Long idMusico,
             @RequestBody Contrato contratoDetails) {
-        ContratoId id = new ContratoId();
-        Event evento = new Event();
-        evento.setIdEvento(idEvento);
-        Musico musico = new Musico();
-        musico.setIdMusico(idMusico);
-        id.setEvento(evento);
-        id.setMusico(musico);
 
-        Optional<Contrato> existingContrato = contratoService.findById(id);
-        if (existingContrato.isPresent()) {
-            contratoDetails.setIdContrato(id);
+        ContratoId id = new ContratoId();
+        Event eventoPlaceholder = new Event(); eventoPlaceholder.setIdEvento(idEvento);
+        Musico musicoPlaceholder = new Musico(); musicoPlaceholder.setIdMusico(idMusico);
+        id.setEvento(eventoPlaceholder);
+        id.setMusico(musicoPlaceholder);
+
+        contratoDetails.setIdContrato(id);
+        contratoDetails.getIdContrato().getEvento().setIdEvento(idEvento);
+        contratoDetails.getIdContrato().getMusico().setIdMusico(idMusico);
+
+        try {
             Contrato updatedContrato = contratoService.save(contratoDetails);
             return ResponseEntity.ok(updatedContrato);
-        } else {
+        } catch (ResourceNotFoundException e) {
             return ResponseEntity.notFound().build();
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.badRequest().body(null);
         }
     }
+
     @PutMapping("/{idEvento}/{idMusico}/activate")
     public ResponseEntity<Contrato> ativarContrato(@PathVariable Long idEvento, @PathVariable Long idMusico){
         ContratoId id = new ContratoId();
@@ -107,17 +118,28 @@ public class ContratoController {
     @DeleteMapping("/{idEvento}/{idMusico}")
     public ResponseEntity<Void> deleteContrato(@PathVariable Long idEvento, @PathVariable Long idMusico) {
         ContratoId id = new ContratoId();
-        Event evento = new Event();
-        evento.setIdEvento(idEvento);
-        Musico musico = new Musico();
-        musico.setIdMusico(idMusico);
+        Event evento = new Event(); evento.setIdEvento(idEvento);
+        Musico musico = new Musico(); musico.setIdMusico(idMusico);
         id.setEvento(evento);
         id.setMusico(musico);
-
-        if (contratoService.existsById(id)) {
+        try {
+            contratoService.getHorarioByEventoAndMusico(idEvento, idMusico);
             contratoService.deleteById(id);
             return ResponseEntity.noContent().build();
-        } else {
+        } catch (ResourceNotFoundException e) {
+            return ResponseEntity.notFound().build();
+        }
+    }
+
+    @GetMapping("/evento/{eventoId}/musico/{musicoId}/horario")
+    public ResponseEntity<Map<String, LocalDateTime>> getHorarioContratoMusico(@PathVariable Long eventoId, @PathVariable Long musicoId) {
+        try {
+            Contrato contrato = contratoService.getHorarioByEventoAndMusico(eventoId, musicoId);
+            Map<String, LocalDateTime> horario = new HashMap<>();
+            horario.put("horarioInicio", contrato.getHorarioInicio());
+            horario.put("horarioFim", contrato.getHorarioFim());
+            return ResponseEntity.ok(horario);
+        } catch (ResourceNotFoundException e) {
             return ResponseEntity.notFound().build();
         }
     }

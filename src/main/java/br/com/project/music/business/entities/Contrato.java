@@ -4,6 +4,9 @@ import jakarta.persistence.*;
 import lombok.*;
 
 import java.io.Serializable;
+import java.sql.Time;
+import java.time.LocalDateTime;
+
 @Entity
 @Table(name="contrato")
 @Data
@@ -24,16 +27,12 @@ public class Contrato {
     @Column(name = "status")
     private boolean status = false;
 
+    @Column(name = "horario_inicio")
+    private LocalDateTime horarioInicio;
 
-    @ManyToOne
-    @JoinColumn(name = "id_evento", insertable = false, updatable = false)
-    @JsonIgnore
-    private Event evento;
+    @Column(name = "horario_fim")
+    private LocalDateTime horarioFim;
 
-    @ManyToOne
-    @JoinColumn(name = "id_musico", insertable = false, updatable = false)
-    @JsonIgnore
-    private Musico musico;
 
     @Embeddable
     @Data
@@ -41,20 +40,25 @@ public class Contrato {
     @AllArgsConstructor
     @EqualsAndHashCode
     public static class ContratoId implements Serializable{
-        @ManyToOne
+        @ManyToOne(fetch = FetchType.LAZY)
         @JoinColumn(name = "id_evento")
         private Event evento;
 
-        @ManyToOne
+        @ManyToOne(fetch = FetchType.LAZY)
         @JoinColumn(name = "id_musico")
         private Musico musico;
 
     }
-    public Contrato(ContratoId idContrato, Double valor, String detalhes) {
+    public Contrato(ContratoId idContrato, Double valor, String detalhes, LocalDateTime horarioInicio, LocalDateTime horarioFim) {
         this.idContrato = idContrato;
         this.valor = valor;
         this.detalhes = detalhes;
         this.status = false;
+        this.horarioInicio = horarioInicio;
+        this.horarioFim = horarioFim;
+    }
+    public boolean overlapsWith(LocalDateTime otherStart, LocalDateTime otherEnd) {
+        return (this.horarioInicio.isBefore(otherEnd) && this.horarioFim.isAfter(otherStart));
     }
 }
 

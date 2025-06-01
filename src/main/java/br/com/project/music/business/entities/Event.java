@@ -7,6 +7,7 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.persistence.*;
 import lombok.*;
 
+import java.sql.Time;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
@@ -29,6 +30,9 @@ public class Event {
     @Column(name = "data_hora", nullable = false)
     private LocalDateTime dataHora;
 
+    @Column(name = "hora_encerramento", nullable = true)
+    private LocalDateTime horaEncerramento;
+
     @Column(name = "descricao")
     private String descricao;
 
@@ -47,6 +51,10 @@ public class Event {
     @JsonIgnore
     private List<Reserva> reservas;
 
+    @OneToMany(mappedBy = "idContrato.evento", cascade = CascadeType.ALL, orphanRemoval = true)
+    @JsonIgnore
+    private List<Contrato> contratosDoEvento = new ArrayList<>();
+
     @OneToMany(mappedBy = "idEscala.evento", cascade = CascadeType.ALL, orphanRemoval = true)
     @JsonIgnore
     private List<Escala> escalasDoEvento = new ArrayList<>();
@@ -61,5 +69,12 @@ public class Event {
 
     @Column(name = "foto_content_type", nullable = true)
     private String eventPictureContentType;
+
+    public boolean isContractTimeWithinEvent(LocalDateTime contractStartTime, LocalDateTime contractEndTime) {
+        if (contractStartTime == null || contractEndTime == null || dataHora == null || horaEncerramento == null) {
+            return false;
+        }
+        return !contractStartTime.isBefore(this.dataHora) && !contractEndTime.isAfter(this.horaEncerramento);
+    }
 
 }
