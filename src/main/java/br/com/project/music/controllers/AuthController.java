@@ -3,6 +3,7 @@ import br.com.project.music.business.dtos.*;
 import br.com.project.music.business.entities.User;
 import br.com.project.music.business.repositories.UserRepository;
 import br.com.project.music.services.AuthService;
+import br.com.project.music.services.EmailService;
 import br.com.project.music.services.UserService;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.core.io.Resource;
@@ -48,6 +49,8 @@ public class AuthController {
     private final UserService userService;
     private final ClientRegistrationRepository clientRegistrationRepository;
     private final OAuth2AuthorizationRequestResolver authorizationRequestResolver;
+    @Autowired
+    private EmailService emailService;
 
     @Autowired
     public AuthController(AuthService authService, UserService userService, ClientRegistrationRepository clientRegistrationRepository) {
@@ -84,8 +87,23 @@ public class AuthController {
         }
         return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
     }
+
     @GetMapping("/check-email")
-    public ResponseEntity<?> checkEmailExists(@RequestParam String email) {
+    public ResponseEntity<String> checkEmailExists(@RequestParam String email) {
+        if (userRepository.findByEmail(email).isPresent()) {
+            try {
+                emailService.resetPasswordEmail(email);
+                return ResponseEntity.ok("Email para redefinição de senha enviado com sucesso!");
+            } catch (Exception e) {
+                System.err.println("Erro ao tentar enviar email de redefinição para " + email + ": " + e.getMessage());
+                return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Ocorreu um erro ao enviar o email de redefinição. Tente novamente mais tarde.");
+            }
+        } else {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Email não encontrado.");
+        }
+    }
+    @GetMapping("/validate-email")
+    public ResponseEntity<String> validateEmailExists(@RequestParam String email) {
         if (userRepository.findByEmail(email).isPresent()) {
             return ResponseEntity.ok().build();
         } else {
