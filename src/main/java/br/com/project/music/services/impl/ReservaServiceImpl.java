@@ -6,6 +6,7 @@ import br.com.project.music.business.entities.Event;
 import br.com.project.music.business.repositories.ReservaRepository;
 import br.com.project.music.business.repositories.UserRepository;
 import br.com.project.music.business.repositories.EventRepository;
+import br.com.project.music.services.EmailService;
 import br.com.project.music.services.ReservaService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -24,6 +25,9 @@ public class ReservaServiceImpl implements ReservaService {
 
     @Autowired
     private EventRepository eventRepository;
+
+    @Autowired
+    private EmailService emailService;
 
     @Override
     public ReservaDTO createReserva(ReservaDTO reservaDTO) {
@@ -71,6 +75,22 @@ public class ReservaServiceImpl implements ReservaService {
                   existingReserva.setEvento(evento);
             }
             Reserva updatedReserva = reservaRepository.save(existingReserva);
+
+            if(updatedReserva.isConfirmado() && updatedReserva.getUsuario() != null && updatedReserva.getEvento() != null) {
+                try {
+                    String emailUsuario = updatedReserva.getUsuario().getEmail();
+                    String nomeEvento = updatedReserva.getEvento().getNomeEvento();
+                    if(emailUsuario != null && !emailUsuario.isEmpty() && nomeEvento != null && !nomeEvento.isEmpty()) {
+                        emailService.sendEmail(emailUsuario, nomeEvento);
+                        System.out.println("E-mail de confirmação enviado para: " + emailUsuario + " sobre o evento: " + nomeEvento);
+                    } else {
+                        System.out.println("E-mail ou nome do evento inválidos para envio de confirmação.");
+                    }
+                } catch (Exception e) {
+                    System.out.println("Erro ao enviar e-mail de confirmação: " + e.getMessage());
+                    e.printStackTrace();
+                }
+            }
             return convertToDTO(updatedReserva);
         }
         return null;
