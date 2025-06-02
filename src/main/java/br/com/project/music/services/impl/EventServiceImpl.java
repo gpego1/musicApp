@@ -52,6 +52,7 @@ public class EventServiceImpl implements EventService {
         event.setNomeEvento(eventDTO.getNomeEvento());
         event.setDataHora(eventDTO.getDataHora());
         event.setDescricao(eventDTO.getDescricao());
+        event.setClassificacao(eventDTO.getClassificacao());
         event.setGeneroMusical(eventDTO.getGeneroMusical());
         event.setLocalEvento(eventDTO.getLocalEvento());
         event.setHost(eventDTO.getHost());
@@ -79,6 +80,7 @@ public class EventServiceImpl implements EventService {
             event.setNomeEvento(eventDTO.getNomeEvento());
             event.setDataHora(eventDTO.getDataHora());
             event.setDescricao(eventDTO.getDescricao());
+            event.setClassificacao(eventDTO.getClassificacao());
             event.setGeneroMusical(eventDTO.getGeneroMusical());
             event.setLocalEvento(eventDTO.getLocalEvento());
             event.setHost(eventDTO.getHost());
