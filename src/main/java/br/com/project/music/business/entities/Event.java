@@ -37,7 +37,7 @@ public class Event {
     @Column(name = "descricao")
     private String descricao;
 
-    @Column(name = "classificacao", nullable = false)
+    @Column(name = "classificacao")
     private String classificacao;
 
     @ManyToOne(fetch = FetchType.EAGER)

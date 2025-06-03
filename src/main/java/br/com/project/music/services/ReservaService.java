@@ -17,4 +17,5 @@ public interface ReservaService {
     List<ReservaDTO> getReservasByUsuario(Long userId);
     List<ReservaDTO> getReservasByEvento(Long eventoId);
     List<ReservaDTO> getConfirmedReservasByUsuario(Long userId);
+    List<ReservaDTO> verificarReservasUsuarioEvento(Long usuarioId, Long eventoId);
 }

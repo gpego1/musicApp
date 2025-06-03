@@ -109,4 +109,12 @@ public class ReservaController {
             return new ResponseEntity<>(HttpStatus.NOT_FOUND);
         }
     }
+    @GetMapping("/usuario/{usuarioId}/evento/{eventoId}")
+    public ResponseEntity<List<ReservaDTO>> verificarReservaExistente(
+            @PathVariable Long usuarioId,
+            @PathVariable Long eventoId) {
+
+        List<ReservaDTO> reservas = reservaService.verificarReservasUsuarioEvento(usuarioId, eventoId);
+        return ResponseEntity.ok(reservas);
+    }
 }

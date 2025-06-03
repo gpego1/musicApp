@@ -21,4 +21,7 @@ public interface ReservaRepository extends JpaRepository<Reserva, Long> {
 
     @Query("SELECT r FROM Reserva r JOIN r.evento e WHERE r.usuario.id = :userId AND e.dataHora < :now AND r.confirmado = true")
     List<Reserva> findByUsuarioIdAndEventoDataHoraBeforeAndConfirmadoTrue(@Param("userId") Long usuarioId, @Param("now")LocalDateTime now);
+
+    @Query("SELECT r FROM Reserva r WHERE r.usuario.id = :usuarioId AND r.evento.idEvento = :eventoId")
+    List<Reserva> findByUsuarioIdAndEventoId(@Param("usuarioId") Long usuarioId, @Param("eventoId") Long eventoId);
 }
