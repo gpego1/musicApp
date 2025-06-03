@@ -124,6 +124,16 @@ public class ReservaServiceImpl implements ReservaService {
                 .map(this::convertToDTO)
                 .collect(Collectors.toList());
     }
+
+
+    public List<ReservaDTO> verificarReservasUsuarioEvento(Long usuarioId, Long eventoId) {
+        return reservaRepository.findByUsuarioIdAndEventoId(usuarioId, eventoId)
+                .stream()
+                .map(this::convertToDTO)
+                .collect(Collectors.toList());
+    }
+
+
     private ReservaDTO convertToDTO(Reserva reserva) {
         ReservaDTO dto = new ReservaDTO();
         dto.setIdReserva(reserva.getIdReserva());
