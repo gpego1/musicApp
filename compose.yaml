@@ -1,43 +1,99 @@
 version: '3.8'
 
 services:
+  # MySQL Database
   db:
     image: mysql:8.0
-    container_name: eventomusical-db
+    container_name: musicapp-db
     environment:
       MYSQL_ROOT_PASSWORD: 1234
       MYSQL_DATABASE: eventomusical
-
+      MYSQL_USER: musicuser
+      MYSQL_PASSWORD: musicpass
     ports:
       - "3307:3306"
     volumes:
-      - eventomusical-db-data:/var/lib/mysql
+      - mysql-data:/var/lib/mysql
+      - ./uploads:/app/uploads
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-uroot", "-p1234"]
+      interval: 5s
+      timeout: 10s
+      retries: 5
 
-    networks:
-      - eventomusical-network
-
-  sync-service:
-    image: alpine
-    container_name: db-sync
-    depends_on:
-      - db
+  # Elasticsearch
+  elasticsearch:
+    image: elasticsearch:8.12.0
+    container_name: musicapp-es
+    environment:
+      - discovery.type=single-node
+      - ES_JAVA_OPTS=-Xms1g -Xmx1g
+      - xpack.security.enabled=false
     volumes:
-      - ./sync-scripts:/scripts
-    networks:
-      - eventomusical-network
-    command: >
-      sh -c "
-      apk add --no-cache mysql-client bash &&
-      while ! nc -z db 3306; do sleep 1; done &&
-      while true; do
-        mysql -h host.docker.internal -u root -p1234 --port=3306 eventomusical -e 'FLUSH TABLES WITH READ LOCK; SYSTEM mysqldump -u root -p1234 --port=3306 eventomusical > /tmp/dump.sql; UNLOCK TABLES;' &&
-        mysql -h db -u root -p1234 eventomusical < /tmp/dump.sql &&
-        sleep 60
-      done"
+      - es-data:/usr/share/elasticsearch/data
+    ports:
+      - "9200:9200"
+    healthcheck:
+      test: ["CMD-SHELL", "curl -sS http://localhost:9200/_cluster/health | grep -q '\"status\":\"green\"' || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # Logstash
+  logstash:
+    image: logstash:7.4.0
+    container_name: musicapp-logstash
+    volumes:
+      - ./logstash-config/pipeline:/usr/share/logstash/pipeline
+      - ./logstash-config/config:/usr/share/logstash/config
+      - ./src/main/resources/musicapp-template.json:/usr/share/logstash/templates/musicapp-template.json
+      - ./app.log:/app/app.log
+    ports:
+      - "5011:5010"
+    environment:
+      - XPACK_MONITORING_ENABLED=false
+    depends_on:
+      elasticsearch:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "curl -sS http://localhost:9600 || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  app:
+    build: .
+    container_name: musicapp-backend
+    ports:
+      - "8081:8080"
+      - "9091:9090"
+    environment:
+      - SPRING_PROFILES_ACTIVE=dev
+      - SPRING_DATASOURCE_URL=jdbc:mysql://db:3306/eventomusical?useSSL=false
+      - SPRING_DATASOURCE_USERNAME=musicuser
+      - SPRING_DATASOURCE_PASSWORD=musicpass
+      - SPRING_JPA_HIBERNATE_DDL_AUTO=update
+      - JWT_SECRET=your_jwt_secret_here
+      - SPRING_MAIL_HOST=smtp.gmail.com
+      - SPRING_MAIL_USERNAME=your_email@gmail.com
+      - SPRING_MAIL_PASSWORD=your_app_password
+    volumes:
+      - ./target:/app/target
+      - ./uploads:/app/uploads
+      - ./app.log:/app/app.log
+    depends_on:
+      db:
+        condition: service_healthy
+      elasticsearch:
+        condition: service_healthy
+      logstash:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "curl -sS http://localhost:8080/actuator/health || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
 
 volumes:
-  eventomusical-db-data:
-
-networks:
-  eventomusical-network:
-    driver: bridge
+  mysql-data:
+  es-data:

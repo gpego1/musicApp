@@ -55,7 +55,6 @@ public class ContratoController {
     }
 
     @GetMapping("/musico/{musicoId}")
-    @Transactional
     public ResponseEntity<List<Contrato>> getContratoByMusicoId(@PathVariable Long musicoId){
         List<Contrato> contratosMusico = contratoService.findByMusicoId(musicoId);
         if(contratosMusico.isEmpty()){

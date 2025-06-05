@@ -1,0 +1,56 @@
+{
+  "index_patterns": ["musicapp-*-logs-*"],
+  "settings": {
+    "number_of_shards": 2,
+    "number_of_replicas": 1,
+    "index.refresh_interval": "30s",
+    "analysis": {
+      "analyzer": {
+        "music_analyzer": {
+          "type": "custom",
+          "tokenizer": "standard",
+          "filter": ["lowercase", "asciifolding"]
+        }
+      }
+    }
+  },
+  "mappings": {
+    "properties": {
+      "@timestamp": {
+        "type": "date"
+      },
+      "app": {
+        "type": "keyword"
+      },
+      "port": {
+        "type": "keyword"
+      },
+      "level": {
+        "type": "keyword"
+      },
+      "logger": {
+        "type": "keyword"
+      },
+      "message": {
+        "type": "text",
+        "analyzer": "music_analyzer",
+        "fields": {
+          "keyword": {
+            "type": "keyword",
+            "ignore_above": 256
+          }
+        }
+      },
+      "thread": {
+        "type": "keyword"
+      },
+      "service_type": {
+        "type": "keyword"
+      },
+      "stack_trace": {
+        "type": "text",
+        "index": false
+      }
+    }
+  }
+}
