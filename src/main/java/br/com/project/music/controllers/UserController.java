@@ -5,11 +5,15 @@ import br.com.project.music.business.repositories.UserRepository;
 import br.com.project.music.exceptions.EntityNotFoundException;
 import br.com.project.music.services.UserService;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import java.util.List;
+
+import static net.logstash.logback.argument.StructuredArguments.kv;
 
 
 @RestController
@@ -17,6 +21,8 @@ import java.util.List;
 @Tag(name="Usuários", description = "Gerenciamento de usuários do sistema")
 
 public class UserController {
+
+    private static final Logger logger = LoggerFactory.getLogger(UserController.class);
 
     @Autowired
     private UserService userService;
@@ -35,7 +41,13 @@ public class UserController {
 
     @GetMapping
     public ResponseEntity<List<UserDTO>> getAllUsers() {
+        if (userRepository.count() == 0) {
+            logger.warn("No users found in the database.");
+            return ResponseEntity.noContent().build();
+        }
+        logger.info("Returning all users from the database.");
         return ResponseEntity.ok(userService.getAllUsers());
+
     }
 
     @GetMapping("/{id}")
