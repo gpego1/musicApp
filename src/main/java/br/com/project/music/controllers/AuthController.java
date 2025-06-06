@@ -49,6 +49,7 @@ public class AuthController {
     private final UserService userService;
     private final ClientRegistrationRepository clientRegistrationRepository;
     private final OAuth2AuthorizationRequestResolver authorizationRequestResolver;
+
     @Autowired
     private EmailService emailService;
 
