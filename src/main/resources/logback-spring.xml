@@ -2,24 +2,21 @@
 <configuration scan="true" scanPeriod="30 seconds">
     <include resource="org/springframework/boot/logging/logback/defaults.xml"/>
 
-    <!-- Appender para console -->
     <appender name="CONSOLE" class="ch.qos.logback.core.ConsoleAppender">
         <encoder>
             <pattern>%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n</pattern>
         </encoder>
     </appender>
 
-    <!-- Appender para Logstash -->
     <appender name="LOGSTASH" class="net.logstash.logback.appender.LogstashTcpSocketAppender">
-        <destination>localhost:5010</destination>
+        <destination>${logging.logstash.host:-127.0.0.1}:${logging.logstash.port:-5044}</destination>
         <encoder class="net.logstash.logback.encoder.LogstashEncoder">
             <customFields>{"app":"musicApp","port":"8080","env":"${spring.profiles.active:-dev}"}</customFields>
         </encoder>
     </appender>
 
-    <!-- Appender para arquivo -->
     <appender name="FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
-        <file>logs/app.log</file>
+        <file>./logs/app.log</file>
         <encoder>
             <pattern>%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n</pattern>
         </encoder>
@@ -37,7 +34,6 @@
         <appender-ref ref="LOGSTASH"/>
     </root>
 
-    <!-- Loggers específicos -->
     <logger name="br.com.project.music" level="DEBUG"/>
     <logger name="org.springframework" level="WARN"/>
     <logger name="org.hibernate.SQL" level="DEBUG"/>

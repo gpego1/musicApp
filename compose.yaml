@@ -41,32 +41,33 @@ services:
 
   # Logstash
   logstash:
-    image: logstash:7.4.0
+    image: logstash:8.12.0
     container_name: musicapp-logstash
+    command: logstash -f /usr/share/logstash/pipeline/logstash.conf --path.settings /usr/share/logstash/config
     volumes:
       - ./logstash-config/pipeline:/usr/share/logstash/pipeline
       - ./logstash-config/config:/usr/share/logstash/config
+      - ./logs:/usr/share/logstash/data
       - ./src/main/resources/musicapp-template.json:/usr/share/logstash/templates/musicapp-template.json
-      - ./app.log:/app/app.log
     ports:
-      - "5011:5010"
+      - "5044:5044"
     environment:
       - XPACK_MONITORING_ENABLED=false
     depends_on:
       elasticsearch:
-        condition: service_healthy
+        condition: service_started
     healthcheck:
-      test: ["CMD-SHELL", "curl -sS http://localhost:9600 || exit 1"]
-      interval: 30s
-      timeout: 10s
-      retries: 3
+      test: ["CMD-SHELL", "ps aux | grep -q 'logstash' || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
 
   app:
     build: .
     container_name: musicapp-backend
     ports:
-      - "8081:8080"
-      - "9091:9090"
+      - "8080:8080"
+      - "9090:9090"
     environment:
       - SPRING_PROFILES_ACTIVE=dev
       - SPRING_DATASOURCE_URL=jdbc:mysql://db:3306/eventomusical?useSSL=false
@@ -80,14 +81,14 @@ services:
     volumes:
       - ./target:/app/target
       - ./uploads:/app/uploads
-      - ./app.log:/app/app.log
+      - ./logs:/app/logs
     depends_on:
       db:
         condition: service_healthy
       elasticsearch:
         condition: service_healthy
       logstash:
-        condition: service_healthy
+        condition: service_started
     healthcheck:
       test: ["CMD-SHELL", "curl -sS http://localhost:8080/actuator/health || exit 1"]
       interval: 30s
