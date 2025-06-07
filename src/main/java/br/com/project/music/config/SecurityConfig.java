@@ -37,29 +37,12 @@ public class SecurityConfig {
                 .csrf(AbstractHttpConfigurer::disable)
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
-                        .requestMatchers("/auth/**").permitAll()
-                        .requestMatchers("/auth/login").permitAll()
-
-                        .requestMatchers("/auth/login", "/auth/register", "/auth/check-email", "/auth/change-password").permitAll()
-                        .requestMatchers("/auth/**", "/public/**").permitAll()
-                        .requestMatchers("/", "/login", "/oauth2/**", "/actuator/**").permitAll()
-                        .requestMatchers("/oauth2/authorization/google/**").permitAll()
-                        .requestMatchers("/login/oauth2/code/google").permitAll()
-                        .requestMatchers("/auth/user/me").permitAll()
-                        .requestMatchers(HttpMethod.OPTIONS, "/auth/google-login").permitAll()
-                        .requestMatchers(HttpMethod.POST, "/auth/google-login").permitAll()
-                        .requestMatchers("/genres/**").permitAll()
-                        .requestMatchers("/musicos/**").permitAll()
-                        .requestMatchers("/avaliacoes").permitAll()
-                        .requestMatchers("/avaliacoes/**").permitAll()
-                        .requestMatchers("/eventos/**").permitAll()
-                        .requestMatchers("/places/**").permitAll()
-                        .requestMatchers("/users/**").permitAll()
-                        .requestMatchers("/reservas/**").permitAll()
-                        .requestMatchers("/notifications/**").permitAll()
-                        .requestMatchers("/contratos/**").permitAll()
+                        .requestMatchers("/auth/**", "/auth/login", "/auth/register", "/auth/check-email", "/auth/change-password", "/auth/user/me", "/auth/google-login").permitAll()
+                        .requestMatchers("/public/**").permitAll()
+                        .requestMatchers( "/actuator/**").permitAll()
+                        .requestMatchers("/oauth2/authorization/google/**", "/login/oauth2/code/google").permitAll()
+                        .requestMatchers("/genres/**", "/musicos/**", "/avaliacoes/**", "/eventos/**", "/places/**", "/users/**", "/reservas/**", "/notifications/**", "/contratos/**", "/escalas/**").permitAll()
                         .requestMatchers(HttpMethod.PUT, "/contratos/{idEvento}/{idMusico}/activate").permitAll()
-                        .requestMatchers("/escalas/**").permitAll()
                         .anyRequest().authenticated()
                 )
                 .sessionManagement(sess -> sess.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
@@ -111,8 +94,7 @@ public class SecurityConfig {
                 "/swagger-resources/**",
                 "/swagger-ui.html",
                 "/swagger-ui/**",
-                "/webjars/**",
-                "/actuator/**"
+                "/webjars/**"
         );
     };
 }

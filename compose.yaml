@@ -8,56 +8,66 @@ services:
     environment:
       MYSQL_ROOT_PASSWORD: 1234
       MYSQL_DATABASE: eventomusical
-      MYSQL_USER: musicuser
-      MYSQL_PASSWORD: musicpass
     ports:
       - "3307:3306"
     volumes:
       - mysql-data:/var/lib/mysql
-      - ./uploads:/app/uploads
     healthcheck:
-      test: ["CMD", "mysqladmin", "ping", "-uroot", "-p1234"]
-      interval: 5s
+      test: ["CMD", "mysql", "--protocol=tcp", "-uroot", "-p1234", "-e", "SELECT 1"]
+      interval: 10s
       timeout: 10s
-      retries: 5
+      retries: 10
+      start_period: 30s
 
   # Elasticsearch
   elasticsearch:
     image: elasticsearch:8.12.0
     container_name: musicapp-es
     environment:
+      - xpack.security.enabled=false
       - discovery.type=single-node
       - ES_JAVA_OPTS=-Xms1g -Xmx1g
-      - xpack.security.enabled=false
     volumes:
       - es-data:/usr/share/elasticsearch/data
     ports:
       - "9200:9200"
     healthcheck:
-      test: ["CMD-SHELL", "curl -sS http://localhost:9200/_cluster/health | grep -q '\"status\":\"green\"' || exit 1"]
+      test: [ "CMD-SHELL", "curl -sS http://localhost:9200/_cluster/health?wait_for_status=yellow&timeout=5s || exit 1" ]
       interval: 30s
       timeout: 10s
       retries: 3
 
   # Logstash
   logstash:
-    image: logstash:8.12.0
+    image: docker.elastic.co/logstash/logstash:8.12.0
     container_name: musicapp-logstash
-    command: logstash -f /usr/share/logstash/pipeline/logstash.conf --path.settings /usr/share/logstash/config
+
+    command: >
+      bash -c "
+              export LS_JAVA_OPTS='-Xmx512m -Xms512m' && \
+              if ! bin/logstash-plugin list | grep -q 'logstash-filter-multiline'; then
+                echo 'Installing logstash-filter-multiline plugin...' && \
+                bin/logstash-plugin install logstash-filter-multiline;
+              fi && \
+              logstash -f /usr/share/logstash/pipeline/logstash.conf --path.settings /usr/share/logstash/config
+            "
     volumes:
       - ./logstash-config/pipeline:/usr/share/logstash/pipeline
       - ./logstash-config/config:/usr/share/logstash/config
-      - ./logs:/usr/share/logstash/data
+      - logstash-data:/usr/share/logstash/data
       - ./src/main/resources/musicapp-template.json:/usr/share/logstash/templates/musicapp-template.json
     ports:
       - "5044:5044"
+      - "9600:9600"
     environment:
       - XPACK_MONITORING_ENABLED=false
+      - ELASTICSEARCH_HOSTS=http://elasticsearch:9200
+      - LS_JAVA_OPTS=-Xmx256m -Xms512m
     depends_on:
       elasticsearch:
-        condition: service_started
+        condition: service_healthy
     healthcheck:
-      test: ["CMD-SHELL", "ps aux | grep -q 'logstash' || exit 1"]
+      test: ["CMD-SHELL", "curl -f http://localhost:9600/ || exit 1"]
       interval: 10s
       timeout: 5s
       retries: 5
@@ -71,13 +81,22 @@ services:
     environment:
       - SPRING_PROFILES_ACTIVE=dev
       - SPRING_DATASOURCE_URL=jdbc:mysql://db:3306/eventomusical?useSSL=false
-      - SPRING_DATASOURCE_USERNAME=musicuser
-      - SPRING_DATASOURCE_PASSWORD=musicpass
-      - SPRING_JPA_HIBERNATE_DDL_AUTO=update
-      - JWT_SECRET=your_jwt_secret_here
+      - SPRING_DATASOURCE_USERNAME=root
+      - SPRING_DATASOURCE_PASSWORD=1234
+      - JWT_SECRET=062a569fc4f8e8edb03a5323af481aab46eb0c887ce11427be1c122990493ece62fdd0e26855b057f5100719b55aa44d119e9dcf01e79baa8a1a10d4f1121767
       - SPRING_MAIL_HOST=smtp.gmail.com
-      - SPRING_MAIL_USERNAME=your_email@gmail.com
-      - SPRING_MAIL_PASSWORD=your_app_password
+      - SPRING_MAIL_USERNAME=sonoraresponse@gmail.com
+      - SPRING_MAIL_PASSWORD=zbcbxjofmbmbhgujqy
+      - LOGGING_LOGSTASH_HOST=musicapp-logstash
+      - LOGGING_LOGSTASH_PORT=5044
+      - MANAGEMENT_SERVER_PORT=9090
+      - MANAGEMENT_ENDPOINTS_WEB_EXPOSURE_INCLUDE=*
+      - MANAGEMENT_ENDPOINT_HEALTH_SHOW_DETAILS=always
+      - MANAGEMENT_ENDPOINT_HEALTH_ROLES=ACTUATOR_ADMIN
+      - MANAGEMENT_ENDPOINTS_WEB_BASE_PATH=/actuator
+      - MANAGEMENT_ENDPOINTS_WEB_PATH_MAPPING_HEALTH=health
+      - MANAGEMENT_ENDPOINTS_WEB_CORS_ALLOWED_ORIGINS=http://localhost:5173
+      - MANAGEMENT_ENDPOINTS_WEB_CORS_ALLOWED_METHODS=GET,OPTIONS
     volumes:
       - ./target:/app/target
       - ./uploads:/app/uploads
@@ -95,6 +114,24 @@ services:
       timeout: 10s
       retries: 3
 
+  kibana:
+    image: docker.elastic.co/kibana/kibana:8.12.0
+    container_name: musicapp-kibana
+    ports:
+      - "5601:5601"
+    environment:
+      ELASTICSEARCH_HOSTS: http://elasticsearch:9200
+    depends_on:
+      elasticsearch:
+        condition: service_healthy
+    networks:
+      - default
+
 volumes:
   mysql-data:
   es-data:
+  logstash-data:
+
+networks:
+  default:
+    driver: bridge

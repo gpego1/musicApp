@@ -9,10 +9,17 @@
     </appender>
 
     <appender name="LOGSTASH" class="net.logstash.logback.appender.LogstashTcpSocketAppender">
-        <destination>${logging.logstash.host:-127.0.0.1}:${logging.logstash.port:-5044}</destination>
+        <destination>localhost:5044</destination>
         <encoder class="net.logstash.logback.encoder.LogstashEncoder">
-            <customFields>{"app":"musicApp","port":"8080","env":"${spring.profiles.active:-dev}"}</customFields>
+            <customFields>
+                {
+                "app":"musicApp",
+                "port":"8080",
+                "env":"${spring.profiles.active:-dev}",
+                "type":"spring-boot"  }
+            </customFields>
         </encoder>
+        <keepAliveDuration>5 minutes</keepAliveDuration>
     </appender>
 
     <appender name="FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
@@ -34,8 +41,7 @@
         <appender-ref ref="LOGSTASH"/>
     </root>
 
-    <logger name="br.com.project.music" level="DEBUG"/>
-    <logger name="org.springframework" level="WARN"/>
-    <logger name="org.hibernate.SQL" level="DEBUG"/>
-    <logger name="org.hibernate.type.descriptor.sql.BasicBinder" level="TRACE"/>
+    <logger name="net.logstash.logback" level="DEBUG" />
+    <logger name="io.netty" level="DEBUG" />
+    <logger name="ch.qos.logback" level="DEBUG" />
 </configuration>

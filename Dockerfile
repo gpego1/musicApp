@@ -15,7 +15,7 @@ COPY --from=builder /app/target/music-*.jar app.jar
 
 RUN mkdir -p /app/uploads/profile-images \
     && mkdir -p /app/uploads/event-images \
-    && touch /app/app.log
+    && mkdir -p /app/logs/
 
 EXPOSE 8080 9090
 
