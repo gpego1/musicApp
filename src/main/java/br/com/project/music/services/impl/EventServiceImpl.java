@@ -8,6 +8,7 @@ import br.com.project.music.business.entities.User;
 import br.com.project.music.business.repositories.EventRepository;
 import br.com.project.music.business.repositories.GenresRepository;
 import br.com.project.music.business.repositories.UserRepository;
+import br.com.project.music.exceptions.EventCreationException;
 import br.com.project.music.services.EventService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -48,14 +49,22 @@ public class EventServiceImpl implements EventService {
     @Override
     @Transactional
     public EventDTO createEvent(EventDTO eventDTO) {
+        Optional<Event> existingEvent = eventRepository.findByDataHora(eventDTO.getDataHora());
+
+        if (existingEvent.isPresent()) {
+            throw new EventCreationException("Já existe um evento agendado para esta data e hora.");
+        }
+
         Event event = new Event();
         event.setNomeEvento(eventDTO.getNomeEvento());
         event.setDataHora(eventDTO.getDataHora());
+        event.setHoraEncerramento(eventDTO.getHoraEncerramento());
         event.setDescricao(eventDTO.getDescricao());
         event.setClassificacao(eventDTO.getClassificacao());
         event.setGeneroMusical(eventDTO.getGeneroMusical());
         event.setLocalEvento(eventDTO.getLocalEvento());
         event.setHost(eventDTO.getHost());
+        event.setFoto(eventDTO.getFoto());
         Event savedEvent = eventRepository.save(event);
         return convertToDTO(savedEvent);
     }
@@ -79,11 +88,13 @@ public class EventServiceImpl implements EventService {
         if (event != null) {
             event.setNomeEvento(eventDTO.getNomeEvento());
             event.setDataHora(eventDTO.getDataHora());
+            event.setHoraEncerramento(eventDTO.getHoraEncerramento());
             event.setDescricao(eventDTO.getDescricao());
             event.setClassificacao(eventDTO.getClassificacao());
             event.setGeneroMusical(eventDTO.getGeneroMusical());
             event.setLocalEvento(eventDTO.getLocalEvento());
             event.setHost(eventDTO.getHost());
+            event.setFoto(eventDTO.getFoto());
             return convertToDTO(eventRepository.save(event));
         }
         return null;

@@ -37,4 +37,6 @@ public interface EventRepository extends JpaRepository<Event, Long> {
 
     @Query("SELECT e FROM Event e JOIN e.reservas r WHERE r.idReserva = :reservaId")
     List<Event> findByReservas_IdReserva(@Param("reservaId") Long reservaId);
+
+    Optional<Event> findByDataHora(LocalDateTime dataHora);
 }

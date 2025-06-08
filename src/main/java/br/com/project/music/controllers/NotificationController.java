@@ -65,7 +65,6 @@ public class NotificationController {
     }
 
     @PostMapping("/broadcast")
-    @PreAuthorize("hasRole('HOST')")
     public ResponseEntity<String> sendBroadcastNotification(@RequestBody NotificationRequest request) {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         String username = authentication.getName();
