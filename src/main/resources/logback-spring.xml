@@ -9,7 +9,7 @@
     </appender>
 
     <appender name="LOGSTASH" class="net.logstash.logback.appender.LogstashTcpSocketAppender">
-        <destination>localhost:5044</destination>
+        <destination>${LOGGING_LOGSTASH_HOST:-localhost}:${LOGGING_LOGSTASH_PORT:-5044}</destination>
         <encoder class="net.logstash.logback.encoder.LogstashEncoder">
             <customFields>
                 {
@@ -18,7 +18,7 @@
                 "env":"${spring.profiles.active:-dev}",
                 "type":"spring-boot"  }
             </customFields>
-        </encoder>
+            <enableMultiLine>true</enableMultiLine> </encoder>
         <keepAliveDuration>5 minutes</keepAliveDuration>
     </appender>
 
