@@ -26,7 +26,6 @@ public class EmailService {
             String emailContent = "Olá,\n\n"
                     + "Recebemos uma solicitação para redefinir a senha da sua conta.\n\n"
                     + "Para redefinir sua senha, por favor, clique no link abaixo.\n"
-                    + "IMPORTANTE: Este é um endpoint de API que espera uma requisição POST.\n"
                     + "Se você não conseguir clicar, copie e cole em uma ferramenta como Postman ou em um formulário de redefinição de senha em nosso site.\n\n"
                     + "Link para redefinição (requer POST com email e newPassword no corpo):\n"
                     + resetLink + "\n\n"

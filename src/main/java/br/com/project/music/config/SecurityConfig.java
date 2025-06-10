@@ -42,6 +42,7 @@ public class SecurityConfig {
                         .requestMatchers("/manage/**").permitAll()
                         .requestMatchers("/oauth2/authorization/google/**", "/login/oauth2/code/google").permitAll()
                         .requestMatchers("/genres/**", "/musicos/**", "/avaliacoes/**", "/eventos/**", "/places/**", "/users/**", "/reservas/**", "/notifications/**", "/contratos/**", "/escalas/**").permitAll()
+                        .requestMatchers("/notifications/user/{hostId}").permitAll()
                         .requestMatchers(HttpMethod.PUT, "/contratos/{idEvento}/{idMusico}/activate").permitAll()
                         .anyRequest().authenticated()
                 )
