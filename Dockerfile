@@ -17,6 +17,6 @@ RUN mkdir -p /app/uploads/profile-images \
     && mkdir -p /app/uploads/event-images \
     && mkdir -p /app/logs/
 
-EXPOSE 8080 9090
+EXPOSE 8080
 
 ENTRYPOINT ["java", "-jar", "app.jar"]
