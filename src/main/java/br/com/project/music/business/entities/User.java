@@ -30,6 +30,9 @@ public class User {
     @Column(name = "data_criacao", columnDefinition = "TIMESTAMP DEFAULT CURRENT_TIMESTAMP")
     private Timestamp dataCriacao;
 
+    @Column(name = "biografia", nullable = true)
+    private String bio;
+
     @Column(name = "google_id", nullable = true)
     private String googleId;
 
