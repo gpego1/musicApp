@@ -91,13 +91,6 @@ services:
       - SPRING_MAIL_PROPERTIES_MAIL_SMTP_STARTTLS_ENABLE=true
       - LOGGING_LOGSTASH_HOST=musicapp-logstash
       - LOGGING_LOGSTASH_PORT=5044
-      - MANAGEMENT_ENDPOINTS_WEB_EXPOSURE_INCLUDE=*
-      - MANAGEMENT_ENDPOINT_HEALTH_SHOW_DETAILS=always
-      - MANAGEMENT_ENDPOINT_HEALTH_ROLES=ACTUATOR_ADMIN
-      - MANAGEMENT_ENDPOINTS_WEB_BASE_PATH=/actuator
-      - MANAGEMENT_ENDPOINTS_WEB_PATH_MAPPING_HEALTH=health
-      - MANAGEMENT_ENDPOINTS_WEB_CORS_ALLOWED_ORIGINS=http://localhost:5173
-      - MANAGEMENT_ENDPOINTS_WEB_CORS_ALLOWED_METHODS=GET,OPTIONS
     volumes:
       - ./target:/app/target
       - ./uploads:/app/uploads
@@ -110,7 +103,7 @@ services:
       logstash:
         condition: service_started
     healthcheck:
-      test: ["CMD-SHELL", "curl -sS http://localhost:8080/actuator/health || exit 1"]
+      test: ["CMD-SHELL", "curl -sS http://localhost:9090/actuator/health || exit 1"]
       interval: 30s
       timeout: 10s
       retries: 3
