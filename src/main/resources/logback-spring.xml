@@ -1,45 +1,37 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <configuration scan="true" scanPeriod="30 seconds">
-    <include resource="org/springframework/boot/logging/logback/defaults.xml"/>
 
-    <!-- Appender para console -->
+    <include resource="org/springframework/boot/logging/logback/base.xml"/>
+
     <appender name="CONSOLE" class="ch.qos.logback.core.ConsoleAppender">
         <encoder>
-            <pattern>%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n</pattern>
+            <pattern>${CONSOLE_LOG_PATTERN}</pattern>
         </encoder>
     </appender>
 
-    <!-- Appender para Logstash -->
     <appender name="LOGSTASH" class="net.logstash.logback.appender.LogstashTcpSocketAppender">
-        <destination>localhost:5010</destination>
+        <destination>${LOGGING_LOGSTASH_HOST:-localhost}:${LOGGING_LOGSTASH_PORT:-5044}</destination>
         <encoder class="net.logstash.logback.encoder.LogstashEncoder">
-            <customFields>{"app":"musicApp","port":"8080","env":"${spring.profiles.active:-dev}"}</customFields>
+            <customFields>
+                {
+                "app":"musicApp",
+                "port":"8080",
+                "env":"${spring.profiles.active:-dev}",
+                "type":"spring-boot"
+                }
+            </customFields>
+            <enableMultiLine>true</enableMultiLine>
         </encoder>
-    </appender>
-
-    <!-- Appender para arquivo -->
-    <appender name="FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
-        <file>logs/app.log</file>
-        <encoder>
-            <pattern>%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n</pattern>
-        </encoder>
-        <rollingPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedRollingPolicy">
-            <fileNamePattern>logs/app.%d{yyyy-MM-dd}.%i.log.gz</fileNamePattern>
-            <maxFileSize>100MB</maxFileSize>
-            <maxHistory>30</maxHistory>
-            <totalSizeCap>1GB</totalSizeCap>
-        </rollingPolicy>
+        <keepAliveDuration>5 minutes</keepAliveDuration>
     </appender>
 
     <root level="INFO">
         <appender-ref ref="CONSOLE"/>
-        <appender-ref ref="FILE"/>
         <appender-ref ref="LOGSTASH"/>
     </root>
 
-    <!-- Loggers específicos -->
-    <logger name="br.com.project.music" level="DEBUG"/>
-    <logger name="org.springframework" level="WARN"/>
-    <logger name="org.hibernate.SQL" level="DEBUG"/>
-    <logger name="org.hibernate.type.descriptor.sql.BasicBinder" level="TRACE"/>
+    <logger name="net.logstash.logback" level="DEBUG" />
+    <logger name="io.netty" level="DEBUG" />
+    <logger name="ch.qos.logback" level="DEBUG" />
+
 </configuration>

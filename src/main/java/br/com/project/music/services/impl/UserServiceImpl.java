@@ -48,6 +48,7 @@ public class UserServiceImpl implements UserService {
         user.setEmail(userDTO.getEmail());
         user.setSenha(passwordEncoder.encode(userDTO.getSenha()));
         user.setDataCriacao(Timestamp.from(Instant.now()));
+        user.setBio(userDTO.getBio());
         user.setRole(userDTO.getRole() != null ? userDTO.getRole() : User.Role.CLIENT);
 
         if(userDTO.getRole() == User.Role.ARTISTA) {
@@ -121,6 +122,9 @@ public class UserServiceImpl implements UserService {
         }
         if (userDTO.getSenha() != null) {
             existingUser.setSenha(passwordEncoder.encode(userDTO.getSenha()));
+        }
+        if (userDTO.getBio() != null) {
+            existingUser.setBio(userDTO.getBio());
         }
         if (userDTO.getRole() != null && !userDTO.getRole().equals(existingUser.getRole())) {
             validateRoleChange(existingUser.getRole(), userDTO.getRole());
@@ -267,6 +271,7 @@ public class UserServiceImpl implements UserService {
     public Optional<User> getUserEntityById(Long id){
         return userRepository.findById(id);
     }
+
     private UserDTO convertToDTO(User user) {
         return new UserDTO(
                 user.getId(),
@@ -274,6 +279,7 @@ public class UserServiceImpl implements UserService {
                 user.getEmail(),
                 null,
                 user.getDataCriacao(),
+                user.getBio(),
                 user.getRole(),
                 user.getMusico() != null ? user.getMusico().getNomeArtistico() : null,
                 user.getMusico() != null ? user.getMusico().getRedesSociais() : null,

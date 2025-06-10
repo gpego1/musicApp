@@ -8,92 +8,88 @@ services:
     environment:
       MYSQL_ROOT_PASSWORD: 1234
       MYSQL_DATABASE: eventomusical
-      MYSQL_USER: musicuser
-      MYSQL_PASSWORD: musicpass
     ports:
       - "3307:3306"
     volumes:
       - mysql-data:/var/lib/mysql
-      - ./uploads:/app/uploads
     healthcheck:
-      test: ["CMD", "mysqladmin", "ping", "-uroot", "-p1234"]
-      interval: 5s
+      test: ["CMD", "mysql", "--protocol=tcp", "-uroot", "-p1234", "-e", "SELECT 1"]
+      interval: 10s
       timeout: 10s
-      retries: 5
+      retries: 10
+      start_period: 30s
 
   # Elasticsearch
   elasticsearch:
     image: elasticsearch:8.12.0
     container_name: musicapp-es
     environment:
+      - xpack.security.enabled=false
       - discovery.type=single-node
       - ES_JAVA_OPTS=-Xms1g -Xmx1g
-      - xpack.security.enabled=false
+      - cluster.name=sonora-cluster
     volumes:
       - es-data:/usr/share/elasticsearch/data
     ports:
       - "9200:9200"
     healthcheck:
-      test: ["CMD-SHELL", "curl -sS http://localhost:9200/_cluster/health | grep -q '\"status\":\"green\"' || exit 1"]
+      test: [ "CMD-SHELL", "curl -sS http://localhost:9200/_cluster/health?wait_for_status=yellow&timeout=5s || exit 1" ]
       interval: 30s
       timeout: 10s
       retries: 3
 
   # Logstash
   logstash:
-    image: logstash:7.4.0
+    image: docker.elastic.co/logstash/logstash:8.12.0
     container_name: musicapp-logstash
+
+    command: >
+      bash -c "
+              export LS_JAVA_OPTS='-Xmx512m -Xms512m' && \
+              if ! bin/logstash-plugin list | grep -q 'logstash-filter-multiline'; then
+                echo 'Installing logstash-filter-multiline plugin...' && \
+                bin/logstash-plugin install logstash-filter-multiline;
+              fi && \
+              logstash -f /usr/share/logstash/pipeline/logstash.conf --path.settings /usr/share/logstash/config
+            "
     volumes:
       - ./logstash-config/pipeline:/usr/share/logstash/pipeline
       - ./logstash-config/config:/usr/share/logstash/config
+      - logstash-data:/usr/share/logstash/data
       - ./src/main/resources/musicapp-template.json:/usr/share/logstash/templates/musicapp-template.json
-      - ./app.log:/app/app.log
     ports:
-      - "5011:5010"
+      - "5044:5044"
+      - "9600:9600"
     environment:
       - XPACK_MONITORING_ENABLED=false
+      - ELASTICSEARCH_HOSTS=http://elasticsearch:9200
+      - LS_JAVA_OPTS=-Xmx256m -Xms512m
     depends_on:
       elasticsearch:
         condition: service_healthy
     healthcheck:
-      test: ["CMD-SHELL", "curl -sS http://localhost:9600 || exit 1"]
-      interval: 30s
-      timeout: 10s
-      retries: 3
+      test: ["CMD-SHELL", "curl -f http://localhost:9600/ || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
 
-  app:
-    build: .
-    container_name: musicapp-backend
+  kibana:
+    image: docker.elastic.co/kibana/kibana:8.12.0
+    container_name: musicapp-kibana
     ports:
-      - "8081:8080"
-      - "9091:9090"
+      - "5601:5601"
     environment:
-      - SPRING_PROFILES_ACTIVE=dev
-      - SPRING_DATASOURCE_URL=jdbc:mysql://db:3306/eventomusical?useSSL=false
-      - SPRING_DATASOURCE_USERNAME=musicuser
-      - SPRING_DATASOURCE_PASSWORD=musicpass
-      - SPRING_JPA_HIBERNATE_DDL_AUTO=update
-      - JWT_SECRET=your_jwt_secret_here
-      - SPRING_MAIL_HOST=smtp.gmail.com
-      - SPRING_MAIL_USERNAME=your_email@gmail.com
-      - SPRING_MAIL_PASSWORD=your_app_password
-    volumes:
-      - ./target:/app/target
-      - ./uploads:/app/uploads
-      - ./app.log:/app/app.log
+      ELASTICSEARCH_HOSTS: http://elasticsearch:9200
     depends_on:
-      db:
-        condition: service_healthy
       elasticsearch:
         condition: service_healthy
-      logstash:
-        condition: service_healthy
-    healthcheck:
-      test: ["CMD-SHELL", "curl -sS http://localhost:8080/actuator/health || exit 1"]
-      interval: 30s
-      timeout: 10s
-      retries: 3
+
 
 volumes:
   mysql-data:
   es-data:
+  logstash-data:
+
+networks:
+  default:
+    driver: bridge

@@ -31,7 +31,8 @@ public class Event {
     @Column(name = "data_hora", nullable = false)
     private LocalDateTime dataHora;
 
-    @Column(name = "hora_encerramento", nullable = true)
+    @Column(name = "hora_encerramento", nullable = false)
+    @JsonFormat(pattern = "HH:mm:ss")
     private LocalTime horaEncerramento;
 
     @Column(name = "descricao")

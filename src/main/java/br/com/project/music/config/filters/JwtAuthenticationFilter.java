@@ -65,7 +65,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                             new WebAuthenticationDetailsSource().buildDetails(request)
                     );
                     SecurityContextHolder.getContext().setAuthentication(authToken);
-                    logger.info("User authentication set in SecurityContextHolder for user: {}", userDetails.getUsername()); // Log successful authentication
+                    logger.info("User authentication set in SecurityContextHolder for user: {}", userDetails.getUsername());
                 } else {
                     logger.warn("JWT validation failed for user: {}", userDetails.getUsername());
                 }

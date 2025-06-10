@@ -1,56 +1,76 @@
 {
-  "index_patterns": ["musicapp-*-logs-*"],
-  "settings": {
-    "number_of_shards": 2,
-    "number_of_replicas": 1,
-    "index.refresh_interval": "30s",
-    "analysis": {
-      "analyzer": {
-        "music_analyzer": {
-          "type": "custom",
-          "tokenizer": "standard",
-          "filter": ["lowercase", "asciifolding"]
+  "index_patterns": ["musicapp-logs-*"],
+  "priority": 1,
+  "data_stream": {},
+  "template": {
+    "settings": {
+      "number_of_shards": 1,
+      "number_of_replicas": 0,
+      "index.refresh_interval": "30s",
+      "analysis": {
+        "analyzer": {
+          "music_analyzer": {
+            "type": "custom",
+            "tokenizer": "standard",
+            "filter": ["lowercase", "asciifolding"]
+          }
         }
       }
-    }
-  },
-  "mappings": {
-    "properties": {
-      "@timestamp": {
-        "type": "date"
-      },
-      "app": {
-        "type": "keyword"
-      },
-      "port": {
-        "type": "keyword"
-      },
-      "level": {
-        "type": "keyword"
-      },
-      "logger": {
-        "type": "keyword"
-      },
-      "message": {
-        "type": "text",
-        "analyzer": "music_analyzer",
-        "fields": {
-          "keyword": {
-            "type": "keyword",
-            "ignore_above": 256
+    },
+    "mappings": {
+      "properties": {
+        "@timestamp": { "type": "date" },
+        "@version": { "type": "keyword" },
+        "tags": { "type": "keyword" },
+        "app": { "type": "keyword" },
+        "port": { "type": "keyword" },
+        "env": { "type": "keyword" },
+        "level": { "type": "keyword" },
+        "logger": { "type": "keyword" },
+        "thread": { "type": "keyword" },
+        "message": {
+          "type": "text",
+          "analyzer": "music_analyzer",
+          "fields": {
+            "keyword": {
+              "type": "keyword",
+              "ignore_above": 256
+            }
+          }
+        },
+        "service_type": { "type": "keyword" },
+        "stack_trace": { "type": "text", "index": false },
+        "host": {
+          "properties": {
+            "name": { "type": "keyword" }
+          }
+        },
+        "ecs": {
+          "properties": {
+            "version": { "type": "keyword" }
+          }
+        },
+        "log": {
+          "properties": {
+            "file": {
+              "properties": {
+                "path": { "type": "keyword" }
+              }
+            }
           }
         }
       },
-      "thread": {
-        "type": "keyword"
-      },
-      "service_type": {
-        "type": "keyword"
-      },
-      "stack_trace": {
-        "type": "text",
-        "index": false
-      }
+      "dynamic_templates": [
+        {
+          "strings_as_keywords": {
+            "match_mapping_type": "string",
+            "mapping": {
+              "type": "keyword",
+              "ignore_above": 1024
+            }
+          }
+        }
+      ]
     }
   }
 }

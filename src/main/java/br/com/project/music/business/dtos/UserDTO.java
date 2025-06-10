@@ -13,6 +13,7 @@ public class UserDTO {
     private String email;
     private String senha;
     private Timestamp dataCriacao;
+    private String bio;
     private User.Role role;
     private String nomeArtistico;
     private String redesSociais;
