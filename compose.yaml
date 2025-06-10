@@ -27,6 +27,7 @@ services:
       - xpack.security.enabled=false
       - discovery.type=single-node
       - ES_JAVA_OPTS=-Xms1g -Xmx1g
+      - cluster.name=sonora-cluster
     volumes:
       - es-data:/usr/share/elasticsearch/data
     ports:
