@@ -9,25 +9,10 @@
         </encoder>
     </appender>
 
-    <appender name="LOGSTASH" class="net.logstash.logback.appender.LogstashTcpSocketAppender">
-        <destination>${LOGGING_LOGSTASH_HOST:-localhost}:${LOGGING_LOGSTASH_PORT:-5044}</destination>
-        <encoder class="net.logstash.logback.encoder.LogstashEncoder">
-            <customFields>
-                {
-                "app":"musicApp",
-                "port":"8080",
-                "env":"${spring.profiles.active:-dev}",
-                "type":"spring-boot"
-                }
-            </customFields>
-            <enableMultiLine>true</enableMultiLine>
-        </encoder>
-        <keepAliveDuration>5 minutes</keepAliveDuration>
-    </appender>
+   
 
     <root level="INFO">
         <appender-ref ref="CONSOLE"/>
-        <appender-ref ref="LOGSTASH"/>
     </root>
 
     <logger name="net.logstash.logback" level="DEBUG" />
