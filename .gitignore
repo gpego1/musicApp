@@ -36,3 +36,10 @@ build/
 
 ### VS Code ###
 .vscode/
+
+### LOGS and UPLOADS
+uploads
+uploads/
+logs
+logs/
+

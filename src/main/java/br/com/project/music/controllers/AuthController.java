@@ -224,7 +224,7 @@ public class AuthController {
     public ResponseEntity<String> uploadProfileImage(@RequestParam("foto") MultipartFile file, @AuthenticationPrincipal UserDetails userDetails) {
         try{
             if(userDetails == null){
-                return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+                return new ResponseEntity<>("Usuário não autorizado.", HttpStatus.UNAUTHORIZED);
             }
 
             String email = userDetails.getUsername();
