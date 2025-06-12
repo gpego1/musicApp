@@ -176,7 +176,9 @@
         <dependency>
             <groupId>org.projectlombok</groupId>
             <artifactId>lombok</artifactId>
+            <scope>provided</scope>
             <optional>true</optional>
+<!--            <version>1.18.34</version>-->
         </dependency>
         <dependency>
             <groupId>org.springframework.boot</groupId>
@@ -205,6 +207,7 @@
                         <path>
                             <groupId>org.projectlombok</groupId>
                             <artifactId>lombok</artifactId>
+<!--                            <version>1.18.34</version>-->
                         </path>
                         <path>
                             <groupId>org.mapstruct</groupId>
@@ -227,10 +230,38 @@
                         <exclude>
                             <groupId>org.projectlombok</groupId>
                             <artifactId>lombok</artifactId>
+<!--                            <version>1.18.34</version>-->
                         </exclude>
                     </excludes>
                 </configuration>
             </plugin>
+            <plugin>
+            <groupId>org.apache.maven.plugins</groupId>
+            <artifactId>maven-antrun-plugin</artifactId>
+            <version>3.0.0</version>
+            <executions>
+                <execution>
+                    <id>prepare</id>
+                    <phase>package</phase>
+                    <configuration>
+                        <target>
+
+                            <copy todir="${project.build.directory}/${project.build.finalName}-AWS/" overwrite="false">
+                                <fileset file="${project.build.directory}/${project.build.finalName}.jar"/>
+                            </copy>
+                            <copy todir="${project.build.directory}/${project.build.finalName}-AWS/.platform" overwrite="false">
+                                <fileset dir="./.platform/" includes="**"/>
+                            </copy>
+                            <zip compress="false" destfile="${project.build.directory}/${project.build.finalName}-AWS.jar" basedir="${project.build.directory}/${project.build.finalName}-AWS/"/>
+
+                        </target>
+                    </configuration>
+                    <goals>
+                        <goal>run</goal>
+                    </goals>
+                </execution>
+            </executions>
+        </plugin>
         </plugins>
     </build>
 
