@@ -4,9 +4,15 @@ import br.com.project.music.business.entities.Musico;
 import br.com.project.music.business.entities.User;
 import br.com.project.music.business.repositories.UserRepository;
 import br.com.project.music.services.UserService;
+import com.amazonaws.services.s3.AmazonS3;
+import com.amazonaws.services.s3.model.GetObjectRequest;
+import com.amazonaws.services.s3.model.ObjectMetadata;
+import com.amazonaws.services.s3.model.PutObjectRequest;
+import com.amazonaws.services.s3.model.S3Object;
 import jakarta.persistence.EntityNotFoundException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.core.io.InputStreamResource;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
@@ -16,6 +22,8 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
+import java.io.InputStream;
+import java.net.URL;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -31,15 +39,23 @@ import java.util.stream.Collectors;
 public class UserServiceImpl implements UserService {
     private final UserRepository userRepository;
     private final BCryptPasswordEncoder passwordEncoder;
+    private final AmazonS3 s3Client;
 
     @Autowired
-    public UserServiceImpl(UserRepository userRepository, BCryptPasswordEncoder passwordEncoder) {
+    public UserServiceImpl(UserRepository userRepository, BCryptPasswordEncoder passwordEncoder, AmazonS3 s3Client) {
         this.userRepository = userRepository;
         this.passwordEncoder = passwordEncoder;
+        this.s3Client = s3Client;
     }
 
     @Value("${file.upload.profile-images-dir}")
     private String uploadDirectory;
+
+    @Value("${aws.s3.bucket-name}")
+    private String bucketName;
+
+    @Value("${aws.s3.profile-images-dir}")
+    private String profileImagesDir;
 
     @Override
     public UserDTO createUser(UserDTO userDTO) {
@@ -254,19 +270,50 @@ public class UserServiceImpl implements UserService {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new RuntimeException("Usuário não encontrado com ID: " + userId));
 
-        String fileName = UUID.randomUUID().toString() + "_" + file.getOriginalFilename();
-        Path uploadPath = Paths.get(uploadDirectory);
-
-        if(!Files.exists(uploadPath)){
-            Files.createDirectories(uploadPath);
+        String originalFilename = file.getOriginalFilename();
+        String fileExtension = "";
+        if(originalFilename != null && originalFilename.contains(".")) {
+            fileExtension = originalFilename.substring(originalFilename.lastIndexOf("."));
         }
+        String newFilename = UUID.randomUUID().toString() + fileExtension;
+        String finalBasePath = (profileImagesDir != null && !profileImagesDir.isEmpty() && !profileImagesDir.endsWith("/"))
+                ? profileImagesDir + "/"
+                : profileImagesDir;
+        String s3Key = finalBasePath + newFilename;
+        try {
+            ObjectMetadata metadata = new ObjectMetadata();
+            metadata.setContentType(file.getContentType());
+            metadata.setContentLength(file.getSize());
+            PutObjectRequest putObjectRequest = new PutObjectRequest(
+                    bucketName,
+                    s3Key,
+                    file.getInputStream(),
+                    metadata
+            );
+            s3Client.putObject(putObjectRequest);
+            user.setFoto(s3Key);
+            user.setProfilePictureContentType(file.getContentType());
+            userRepository.save(user);
+            return s3Key;
+        } catch (Exception e) {
+            e.printStackTrace();
+            throw new IOException("Falha ao fazer upload da imagem para o S3: " + e.getMessage(), e);
+        }
+    }
+    public URL getProfileImage(Long userId) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new RuntimeException("Usuário não encontrado com ID: " + userId));
+        String s3Key = user.getFoto();
+        if (s3Key == null || s3Key.isEmpty()) {
+            throw new RuntimeException("Chave S3 da imagem de perfil não encontrada para o usuário ID: " + userId);
+        }
+        return s3Client.getUrl(bucketName, s3Key);
+    }
 
-        Path filePath = uploadPath.resolve(fileName);
-        Files.copy(file.getInputStream(), filePath, StandardCopyOption.REPLACE_EXISTING);
-        user.setFoto(fileName);
-        user.setProfilePictureContentType(file.getContentType());
-        userRepository.save(user);
-        return fileName;
+    public String getProfileImageContentType(Long userId) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new RuntimeException("Usuário não encontrado com ID: " + userId));
+        return user.getProfilePictureContentType();
     }
     public Optional<User> getUserEntityById(Long id){
         return userRepository.findById(id);

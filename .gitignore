@@ -43,3 +43,23 @@ uploads/
 logs
 logs/
 
+# Ignorar arquivos de configuração sensíveis ou gerados localmente
+application.properties.local
+.env
+my-secret-key.json
+
+# Ignorar arquivos de build do Maven
+target/
+pom.xml.tag
+pom.xml.releaseBackup
+pom.xml.versionsBackup
+pom.xml.next
+release.properties
+dependency-reduced-pom.xml
+build/
+.mvn/wrapper/maven-wrapper.jar
+
+# Ignorar arquivo de configuração do Firebase (contém credenciais)
+src/main/java/br/com/project/music/config/firebaseConfig.json
+
+

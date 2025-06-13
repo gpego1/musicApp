@@ -2,6 +2,7 @@ package br.com.project.music.services;
 
 import br.com.project.music.business.dtos.UserDTO;
 import br.com.project.music.business.entities.User;
+import org.springframework.core.io.Resource;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.oauth2.core.user.OAuth2User;
@@ -9,6 +10,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
+import java.net.URL;
 import java.util.List;
 import java.util.Optional;
 
@@ -26,6 +28,8 @@ public interface UserService extends UserDetailsService {
     User registerOrLoginGoogleUser(OAuth2User oauthUser);
     User findOrCreateGoogleUser(String email, String googleId);
     String uploadProfileImage(Long userId, MultipartFile file) throws IOException;
+    URL getProfileImage(Long userId);
+    String getProfileImageContentType(Long userId);
     Optional<User> getUserEntityById(Long id);
 
 }

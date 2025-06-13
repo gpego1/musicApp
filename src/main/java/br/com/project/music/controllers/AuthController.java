@@ -32,6 +32,8 @@ import org.springframework.web.servlet.view.RedirectView;
 
 import java.io.IOException;
 import java.net.MalformedURLException;
+import java.net.URISyntaxException;
+import java.net.URL;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -222,29 +224,30 @@ public class AuthController {
     }
     @PostMapping("/user/me/upload")
     public ResponseEntity<String> uploadProfileImage(@RequestParam("foto") MultipartFile file, @AuthenticationPrincipal UserDetails userDetails) {
-        try{
-            if(userDetails == null){
+        try {
+            if (userDetails == null) {
                 return new ResponseEntity<>("Usuário não autorizado.", HttpStatus.UNAUTHORIZED);
             }
-
             String email = userDetails.getUsername();
             Optional<User> userOptional = userService.getUserByEmail(email);
-
-            if(userOptional.isEmpty()){
+            if (userOptional.isEmpty()) {
                 return new ResponseEntity<>("Usuário não encontrado.", HttpStatus.NOT_FOUND);
             }
             User user = userOptional.get();
-            String foto = userService.uploadProfileImage(user.getId(), file);
-            return new ResponseEntity<>("Foto de perfil upada com sucesso!: " + foto, HttpStatus.OK);
+            String s3Key = userService.uploadProfileImage(user.getId(), file);
+            return new ResponseEntity<>("Foto de perfil upada com sucesso! Chave S3: " + s3Key, HttpStatus.OK);
 
         } catch (IOException e) {
+            System.err.println("Erro de IO ao fazer upload da imagem: " + e.getMessage());
             return new ResponseEntity<>("Erro ao fazer upload da imagem: " + e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
         } catch (RuntimeException e) {
+            System.err.println("Erro ao processar upload da imagem: " + e.getMessage());
             return new ResponseEntity<>(e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
+
     @GetMapping("/user/me/profile-image")
-    public ResponseEntity<Resource> getProfileImage(@AuthenticationPrincipal UserDetails userDetails) {
+    public ResponseEntity<Void> getProfileImage(@AuthenticationPrincipal UserDetails userDetails) { // Retorna Void para redirecionamento
         if (userDetails == null) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
         }
@@ -255,117 +258,67 @@ public class AuthController {
         }
         User user = userOptional.get();
 
-        if (user.getGoogleId() != null && !user.getGoogleId().isEmpty() && user.getGoogleProfilePictureUrl() != null && !user.getGoogleProfilePictureUrl().isEmpty()) {
-        try {
-            Resource resource = new UrlResource(user.getGoogleProfilePictureUrl());
-            if (resource.exists() && resource.isReadable()) {
-            String contentType = "image/jpeg";
-            String imageUrl = user.getGoogleProfilePictureUrl();
-            if(imageUrl.endsWith(".png")){
-                contentType = "image/png";
-            } else if(imageUrl.endsWith(".gif")){
-                contentType = "image/gif";
-            }
-            return ResponseEntity.ok()
-                    .contentType(MediaType.parseMediaType(contentType))
-                    .header(HttpHeaders.CONTENT_DISPOSITION, "inline; filename=\"google_profile_picture.jpg\"")
-                    .body(resource);
-        } else {
-            System.err.println("Imagem do Google não encontrada ou não acessível na URL: " + user.getGoogleProfilePictureUrl());
-        }
-    } catch (MalformedURLException ex) {
-        System.err.println("URL da imagem do Google malformada: " + ex.getMessage());
-        }
-    }
+        if (user.getGoogleId() != null && !user.getGoogleId().isEmpty() &&
+                user.getGoogleProfilePictureUrl() != null && !user.getGoogleProfilePictureUrl().isEmpty()) {
+            try {
+                URL googleImageUrl = new URL(user.getGoogleProfilePictureUrl());
+                return ResponseEntity.status(HttpStatus.FOUND)
+                        .location(googleImageUrl.toURI())
+                        .build();
+            } catch (MalformedURLException | URISyntaxException ex) {
+                System.err.println("URL da imagem do Google malformada ou erro de URI: " + ex.getMessage());
 
-        String fileName = user.getFoto();
-        if (fileName == null || fileName.isEmpty()) {
-            return ResponseEntity.notFound().build();
+            }
         }
         try {
-            Path filePath = Paths.get(uploadDirectory).resolve(fileName).normalize();
-            Resource resource = new UrlResource(filePath.toUri());
-            if (resource.exists() && resource.isReadable()) {
-                String contentType = user.getProfilePictureContentType();
-                if (contentType == null || contentType.isEmpty()) {
-                    contentType = Files.probeContentType(filePath);
-                    if (contentType == null) {
-                        contentType = "application/octet-stream";
-                    }
-                }
-                return ResponseEntity.ok()
-                        .contentType(MediaType.parseMediaType(contentType))
-                        .header(HttpHeaders.CONTENT_DISPOSITION, "inline; filename=\"" + resource.getFilename() + "\"")
-                        .body(resource);
-            } else {
-                System.err.println("Arquivo de perfil não encontrado ou não legível: " + filePath.toAbsolutePath());
-                return ResponseEntity.notFound().build();
+            URL s3ImageUrl = userService.getProfileImage(user.getId());
+            return ResponseEntity.status(HttpStatus.FOUND)
+                    .location(s3ImageUrl.toURI())
+                    .build();
+
+        } catch (RuntimeException e) {
+            if (e.getMessage().contains("Usuário não encontrado") || e.getMessage().contains("Chave S3 da imagem de perfil não encontrada")) {
+                return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
             }
-        } catch (MalformedURLException ex) {
-            System.err.println("Erro na URL do recurso: " + ex.getMessage());
+            System.err.println("Erro ao buscar imagem de perfil do S3: " + e.getMessage());
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
-        } catch (IOException e) {
-            System.err.println("Erro de IO ao ler arquivo de perfil: " + e.getMessage());
+        } catch (URISyntaxException e) {
+            System.err.println("Erro de sintaxe de URI ao redirecionar para imagem S3: " + e.getMessage());
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
         }
     }
     @GetMapping("/users/{userId}/profile-image")
-    public ResponseEntity<Resource> getUserProfileImageById(@PathVariable Long userId) {
+    public ResponseEntity<Void> getUserProfileImageById(@PathVariable Long userId) {
         Optional<User> userOptional = userService.getUserEntityById(userId);
         if (userOptional.isEmpty()) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
         }
         User user = userOptional.get();
-        if (user.getGoogleId() != null && !user.getGoogleId().isEmpty() && user.getGoogleProfilePictureUrl() != null && !user.getGoogleProfilePictureUrl().isEmpty()) {
+
+        if (user.getGoogleId() != null && !user.getGoogleId().isEmpty() &&
+                user.getGoogleProfilePictureUrl() != null && !user.getGoogleProfilePictureUrl().isEmpty()) {
             try {
-                Resource resource = new UrlResource(user.getGoogleProfilePictureUrl());
-                if (resource.exists() && resource.isReadable()) {
-                    String contentType = "image/jpeg";
-                    String imageUrl = user.getGoogleProfilePictureUrl();
-                    if(imageUrl.endsWith(".png")){
-                        contentType = "image/png";
-                    } else if(imageUrl.endsWith(".gif")){
-                        contentType = "image/gif";
-                    }
-                    return ResponseEntity.ok()
-                            .contentType(MediaType.parseMediaType(contentType))
-                            .header(HttpHeaders.CONTENT_DISPOSITION, "inline; filename=\"google_profile_picture.jpg\"")
-                            .body(resource);
-                } else {
-                    System.err.println("Imagem do Google não encontrada ou não acessível na URL: " + user.getGoogleProfilePictureUrl());
-                }
-            } catch (MalformedURLException ex) {
-                System.err.println("URL da imagem do Google malformada: " + ex.getMessage());
+                URL googleImageUrl = new URL(user.getGoogleProfilePictureUrl());
+                return ResponseEntity.status(HttpStatus.FOUND)
+                        .location(googleImageUrl.toURI())
+                        .build();
+            } catch (MalformedURLException | URISyntaxException ex) {
+                System.err.println("URL da imagem do Google malformada ou erro de URI para usuário " + userId + ": " + ex.getMessage());
             }
-        }
-        String fileName = user.getFoto();
-        if (fileName == null || fileName.isEmpty()) {
-            return ResponseEntity.notFound().build();
         }
         try {
-            Path filePath = Paths.get(uploadDirectory).resolve(fileName).normalize();
-            Resource resource = new UrlResource(filePath.toUri());
-            if (resource.exists() && resource.isReadable()) {
-                String contentType = user.getProfilePictureContentType();
-                if (contentType == null || contentType.isEmpty()) {
-                    contentType = Files.probeContentType(filePath);
-                    if (contentType == null) {
-                        contentType = "application/octet-stream";
-                    }
-                }
-                return ResponseEntity.ok()
-                        .contentType(MediaType.parseMediaType(contentType))
-                        .header(HttpHeaders.CONTENT_DISPOSITION, "inline; filename=\"" + resource.getFilename() + "\"")
-                        .body(resource);
-            } else {
-                System.err.println("Arquivo de perfil não encontrado ou não legível: " + filePath.toAbsolutePath());
-                return ResponseEntity.notFound().build();
+            URL s3ImageUrl = userService.getProfileImage(userId);
+            return ResponseEntity.status(HttpStatus.FOUND)
+                    .location(s3ImageUrl.toURI())
+                    .build();
+        } catch (RuntimeException e) {
+            if (e.getMessage().contains("Usuário não encontrado") || e.getMessage().contains("Chave S3 da imagem de perfil não encontrada") || e.getMessage().contains("Arquivo S3 não encontrado")) {
+                return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
             }
-        } catch (MalformedURLException ex) {
-            System.err.println("Erro na URL do recurso: " + ex.getMessage());
+            System.err.println("Erro ao buscar imagem de perfil do S3 para usuário " + userId + ": " + e.getMessage());
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
-        } catch (IOException e) {
-            System.err.println("Erro de IO ao ler arquivo de perfil: " + e.getMessage());
+        } catch (URISyntaxException e) {
+            System.err.println("Erro de sintaxe de URI ao redirecionar para imagem S3 para usuário " + userId + ": " + e.getMessage());
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
         }
     }
