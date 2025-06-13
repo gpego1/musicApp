@@ -18,6 +18,8 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
+import java.net.URISyntaxException;
+import java.net.URL;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
@@ -179,43 +181,35 @@ public class EventController {
         return new ResponseEntity<>(savedEvent, HttpStatus.CREATED);
     }
     @PostMapping("/{eventId}/upload")
-    public ResponseEntity<?> uploadEventImage(@PathVariable Long eventId, @RequestParam("foto") MultipartFile file) {
-        try {
-            if (file.isEmpty()) {
-                return new ResponseEntity<>("Por favor, selecione um arquivo para upload.", HttpStatus.BAD_REQUEST);
+    public ResponseEntity<String> uploadEventImage(@PathVariable Long eventId, @RequestParam("file") MultipartFile file) {
+             try {
+                 String s3Key = eventService.uploadEventImage(eventId, file);
+                 return ResponseEntity.ok("Imagem carregada com sucesso! Chave S3: " + s3Key);
+             } catch (IOException e) {
+               return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Erro ao carregar imagem: " + e.getMessage());
             }
-            String fileName = eventService.uploadEventImage(eventId, file);
-            return new ResponseEntity<>("Upload de imagem do evento concluído! Nome do arquivo: " + fileName, HttpStatus.OK);
+         }
+    @GetMapping("/{eventId}/image")
+    public ResponseEntity<Void> getEventImage(@PathVariable Long eventId) {
+        try {
+            URL s3ImageUrl = eventService.getEventImage(eventId);
+
+            return ResponseEntity.status(HttpStatus.FOUND)
+                    .location(s3ImageUrl.toURI())
+                    .build();
 
         } catch (RuntimeException e) {
-            return new ResponseEntity<>(e.getMessage(), HttpStatus.NOT_FOUND);
-        } catch (Exception e) {
-            return new ResponseEntity<>("Falha no upload da imagem: " + e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
-        }
-    }
-    @GetMapping("/{eventId}/image")
-    public ResponseEntity<Resource> getEventImage(@PathVariable Long eventId){
-        try {
-            Resource resource = eventService.getEventImage(eventId);
-            String contentType = eventService.getEventImageContentType(eventId);
-
-            if(contentType == null || contentType.isEmpty()){
-                contentType = MediaType.APPLICATION_OCTET_STREAM_VALUE;
-            }
-            return ResponseEntity.ok()
-                    .contentType(MediaType.parseMediaType(contentType))
-                    .header(HttpHeaders.CONTENT_DISPOSITION, "inline; filename=\"" + resource.getFilename() + "\"")
-                    .body(resource);
-
-        }catch (RuntimeException e) {
-            if (e.getMessage().contains("Evento não encontrado") || e.getMessage().contains("Imagem de evento não encontrada")) {
-                return ResponseEntity.status(HttpStatus.NOT_FOUND).body(null);
+            if (e.getMessage().contains("Evento não encontrado") || e.getMessage().contains("Chave S3 da imagem de evento não encontrada")) {
+                return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
             }
             System.err.println("Erro ao buscar imagem do evento: " + e.getMessage());
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(null);
-        } catch (IOException e) {
-            System.err.println("Erro de IO ao ler imagem do evento: " + e.getMessage());
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(null);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+        } catch (URISyntaxException e) {
+            System.err.println("Erro de sintaxe de URI ao redirecionar para imagem S3: " + e.getMessage());
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+        } catch (Exception e) {
+            System.err.println("Erro inesperado ao processar requisição de imagem: " + e.getMessage());
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
         }
     }
     @PutMapping("/{id}")

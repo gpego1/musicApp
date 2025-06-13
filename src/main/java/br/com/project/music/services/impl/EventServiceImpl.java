@@ -1,5 +1,4 @@
 package br.com.project.music.services.impl;
-
 import br.com.project.music.business.dtos.EventDTO;
 import br.com.project.music.business.entities.Event;
 import br.com.project.music.business.entities.Genre;
@@ -10,6 +9,10 @@ import br.com.project.music.business.repositories.GenresRepository;
 import br.com.project.music.business.repositories.UserRepository;
 import br.com.project.music.exceptions.EventCreationException;
 import br.com.project.music.services.EventService;
+import com.amazonaws.services.s3.AmazonS3;
+import com.amazonaws.services.s3.AmazonS3Client;
+import com.amazonaws.services.s3.model.ObjectMetadata;
+import com.amazonaws.services.s3.model.PutObjectRequest;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.cglib.core.Local;
@@ -22,6 +25,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
 import java.net.MalformedURLException;
+import java.net.URL;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -36,15 +40,28 @@ import java.util.stream.Collectors;
 @Service
 public class EventServiceImpl implements EventService {
 
-    @Autowired
-    private EventRepository eventRepository;
-    @Autowired
-    private UserRepository userRepository;
-    @Autowired
-    private GenresRepository genresRepository;
+    private final AmazonS3 s3Client;
+    private final EventRepository eventRepository;
+    private final UserRepository userRepository;
+    private final GenresRepository genresRepository;
+
+    public EventServiceImpl(AmazonS3 s3Client, EventRepository eventRepository, UserRepository userRepository, GenresRepository genresRepository) {
+        this.s3Client = s3Client;
+        this.eventRepository = eventRepository;
+        this.userRepository = userRepository;
+        this.genresRepository = genresRepository;
+    }
 
     @Value("${file.upload.event-images-dir}")
     private String eventUploadDirectory;
+
+    @Value("${aws.s3.bucket-name}")
+    private String bucketName;
+
+    @Value("${aws.s3.event-images-dir}")
+    private String eventImagesBasePath;
+
+
 
     @Override
     @Transactional
@@ -170,42 +187,53 @@ public class EventServiceImpl implements EventService {
     public List<Event> getEventByReservaId(Long reservaId){
         return eventRepository.findByReservas_IdReserva(reservaId);
     }
-    public String uploadEventImage(Long eventId, MultipartFile file) throws IOException{
+    public String uploadEventImage(Long eventId, MultipartFile file) throws IOException {
         Event event = eventRepository.findById(eventId)
                 .orElseThrow(() -> new RuntimeException("Evento não encontrado com ID: " + eventId));
 
-        String fileName = UUID.randomUUID().toString() + "_" + file.getOriginalFilename();
-        Path uploadPath = Paths.get(eventUploadDirectory);
+        String originalFilename = file.getOriginalFilename();
+        String fileExtension = "";
+        if (originalFilename != null && originalFilename.contains(".")) {
+            fileExtension = originalFilename.substring(originalFilename.lastIndexOf("."));
+        }
+        String uniqueFileName = UUID.randomUUID().toString() + fileExtension;
+        String finalBasePath = (eventImagesBasePath != null && !eventImagesBasePath.isEmpty() && !eventImagesBasePath.endsWith("/"))
+                ? eventImagesBasePath + "/"
+                : eventImagesBasePath;
+        String s3Key = finalBasePath + uniqueFileName;
 
-        if(!Files.exists(uploadPath)){
-            Files.createDirectories(uploadPath);
-        }
-        Path filePath = uploadPath.resolve(fileName);
-        Files.copy(file.getInputStream(), filePath, StandardCopyOption.REPLACE_EXISTING);
-        event.setFoto(fileName);
-        event.setEventPictureContentType(file.getContentType());
-        eventRepository.save(event);
-        return fileName;
-    }
-    public Resource getEventImage(Long eventId) throws IOException{
-        Event event = eventRepository.findById(eventId)
-                .orElseThrow(() -> new RuntimeException("Evento não encontrado com ID: " + eventId));
-        String fileName = event.getFoto();
-        if(fileName == null || fileName.isEmpty()){
-            throw new RuntimeException("Imagem de evento não encontrada para o ID: " + eventId);
-        }
         try {
-            Path filePath = Paths.get(eventUploadDirectory).resolve(fileName).normalize();
-            Resource resource = new UrlResource(filePath.toUri());
-            if(resource.exists() && resource.isReadable()){
-                return resource;
-            } else {
-                throw new RuntimeException("Arquivo de imagem do evento não encontrado ou não legível: " + fileName);
-            }
-        } catch (MalformedURLException e){
-            throw new RuntimeException("Erro na URL do recurso da imagem do evento: " + fileName, e);
+            ObjectMetadata metadata = new ObjectMetadata();
+            metadata.setContentType(file.getContentType());
+            metadata.setContentLength(file.getSize());
+            PutObjectRequest putObjectRequest = new PutObjectRequest(
+                    bucketName,
+                    s3Key,
+                    file.getInputStream(),
+                    metadata
+            );
+            s3Client.putObject(putObjectRequest);
+            event.setFoto(s3Key);
+            event.setEventPictureContentType(file.getContentType());
+            eventRepository.save(event);
+
+            return s3Key;
+        } catch (Exception e) {
+            e.printStackTrace();
+            throw new IOException("Falha ao fazer upload da imagem para o S3: " + e.getMessage(), e);
         }
     }
+    public URL getEventImage(Long eventId){
+        Event event = eventRepository.findById(eventId)
+                .orElseThrow(() -> new RuntimeException("Evento não encontrado com ID: " + eventId));
+        String s3Key = event.getFoto();
+
+        if (s3Key == null || s3Key.isEmpty()) {
+            throw new RuntimeException("Chave S3 da imagem de evento não encontrada para o ID: " + eventId);
+        }
+        return s3Client.getUrl(bucketName, s3Key);
+    }
+
     public String getEventImageContentType(Long eventId) throws IOException {
         Event event = eventRepository.findById(eventId)
                 .orElseThrow(() -> new RuntimeException("Evento não encontrado com ID: " + eventId));
