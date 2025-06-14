@@ -44,7 +44,6 @@ logs
 logs/
 
 # Ignorar arquivos de configuração sensíveis ou gerados localmente
-application.properties.local
 .env
 
 # Ignorar arquivos de build do Maven

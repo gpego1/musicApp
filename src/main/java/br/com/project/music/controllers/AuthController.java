@@ -4,19 +4,16 @@ import br.com.project.music.business.entities.User;
 import br.com.project.music.business.repositories.UserRepository;
 import br.com.project.music.services.AuthService;
 import br.com.project.music.services.EmailService;
+import br.com.project.music.services.FirebaseService;
 import br.com.project.music.services.UserService;
 import io.swagger.v3.oas.annotations.tags.Tag;
-import org.springframework.core.io.Resource;
-import org.springframework.core.io.UrlResource;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
-import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -29,14 +26,10 @@ import org.springframework.security.oauth2.core.user.DefaultOAuth2User;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.servlet.view.RedirectView;
-
 import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URISyntaxException;
 import java.net.URL;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.Collections;
 import java.util.Map;
 import java.util.Optional;
@@ -51,17 +44,19 @@ public class AuthController {
     private final UserService userService;
     private final ClientRegistrationRepository clientRegistrationRepository;
     private final OAuth2AuthorizationRequestResolver authorizationRequestResolver;
+    private final FirebaseService firebaseService;
 
     @Autowired
     private EmailService emailService;
 
     @Autowired
-    public AuthController(AuthService authService, UserService userService, ClientRegistrationRepository clientRegistrationRepository) {
+    public AuthController(AuthService authService, UserService userService, ClientRegistrationRepository clientRegistrationRepository, FirebaseService firebaseService) {
         this.authService = authService;
         this.userService = userService;
         this.clientRegistrationRepository = clientRegistrationRepository;
         this.authorizationRequestResolver = new DefaultOAuth2AuthorizationRequestResolver(
                 this.clientRegistrationRepository, "/oauth2/authorization");
+        this.firebaseService = firebaseService;
     }
 
     @Autowired
@@ -73,14 +68,21 @@ public class AuthController {
     @PostMapping("/register")
     public ResponseEntity<UserDTO> registerUser(@Valid @RequestBody UserDTO userDTO) {
         UserDTO createdUser = userService.createUser(userDTO);
+        if (createdUser.getFcmToken() != null && createdUser.getId() != null) {
+            try {
+                firebaseService.storeUserToken(createdUser.getId(), createdUser.getFcmToken());
+            } catch (Exception e) {
+                logger.warn("Failed to store FCM token for user {}: {}", createdUser.getId(), e.getMessage());
+            }
+        }
         Auth auth = new Auth();
         auth.setEmail(userDTO.getEmail());
         auth.setSenha(userDTO.getSenha());
+
         String token = authService.authenticate(auth);
         logger.trace("Token gerado: " + token);
         return ResponseEntity.status(HttpStatus.CREATED).body(createdUser);
     }
-
     @PostMapping("/login")
     public ResponseEntity<String> login(@Valid @RequestBody Auth auth) {
         String token = authService.authenticate(auth);

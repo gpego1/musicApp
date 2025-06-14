@@ -30,6 +30,9 @@ public class User {
     @Column(name = "data_criacao", columnDefinition = "TIMESTAMP DEFAULT CURRENT_TIMESTAMP")
     private Timestamp dataCriacao;
 
+    @Column(name = "fcm_token", length = 255, nullable = true)
+    private String fcmToken;
+
     @Column(name = "biografia", nullable = true)
     private String bio;
 

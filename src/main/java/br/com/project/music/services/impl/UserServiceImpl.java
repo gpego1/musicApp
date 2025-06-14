@@ -64,6 +64,7 @@ public class UserServiceImpl implements UserService {
         user.setEmail(userDTO.getEmail());
         user.setSenha(passwordEncoder.encode(userDTO.getSenha()));
         user.setDataCriacao(Timestamp.from(Instant.now()));
+        user.setFcmToken(userDTO.getFcmToken());
         user.setBio(userDTO.getBio());
         user.setRole(userDTO.getRole() != null ? userDTO.getRole() : User.Role.CLIENT);
 
@@ -136,6 +137,11 @@ public class UserServiceImpl implements UserService {
         if (userDTO.getEmail() != null) {
             existingUser.setEmail(userDTO.getEmail());
         }
+
+        if (userDTO.getFcmToken() != null) {
+            existingUser.setFcmToken(userDTO.getFcmToken());
+        }
+
         if (userDTO.getSenha() != null) {
             existingUser.setSenha(passwordEncoder.encode(userDTO.getSenha()));
         }
@@ -326,6 +332,7 @@ public class UserServiceImpl implements UserService {
                 user.getEmail(),
                 null,
                 user.getDataCriacao(),
+                user.getFcmToken(),
                 user.getBio(),
                 user.getRole(),
                 user.getMusico() != null ? user.getMusico().getNomeArtistico() : null,
