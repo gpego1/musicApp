@@ -42,6 +42,8 @@ uploads
 uploads/
 logs
 logs/
+logs/**
+logs/app.log
 
 # Ignorar arquivos de configuração sensíveis ou gerados localmente
 .env
