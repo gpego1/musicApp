@@ -251,6 +251,37 @@
             </configuration>
             </plugin>
 
+<!--            <plugin>-->
+<!--                <groupId>org.apache.maven.plugins</groupId>-->
+<!--                <artifactId>maven-antrun-plugin</artifactId>-->
+<!--                <version>3.0.0</version>-->
+<!--                <executions>-->
+<!--                    <execution>-->
+<!--                        <id>prepare</id>-->
+<!--                        <phase>package</phase>-->
+<!--                        <configuration>-->
+<!--                            <target>-->
+<!--                                <echo message="Copiando JAR e .platform para o diretório de deploy AWS..."/>-->
+<!--                                <mkdir dir="${project.build.directory}/${project.build.finalName}-AWS/"/>-->
+<!--                                <copy file="${project.build.directory}/${project.build.finalName}.jar"-->
+<!--                                      tofile="${project.build.directory}/${project.build.finalName}-AWS/application.jar"-->
+<!--                                      overwrite="true"/>-->
+<!--                                <copy todir="${project.build.directory}/${project.build.finalName}-AWS/.platform" overwrite="true">-->
+<!--                                    <fileset dir="./.platform/" includes="**"/>-->
+<!--                                </copy>-->
+<!--                                <echo message="Criando pacote .jar para AWS Elastic Beanstalk..."/>-->
+<!--                                <zip compress="true"-->
+<!--                                     destfile="${project.build.directory}/${project.build.finalName}-AWS.zip"-->
+<!--                                     basedir="${project.build.directory}/${project.build.finalName}-AWS/"/>-->
+<!--                                <echo message="Pacote AWS Elastic Beanstalk criado em: ${project.build.directory}/${project.build.finalName}-AWS.zip"/>-->
+<!--                            </target>-->
+<!--                        </configuration>-->
+<!--                        <goals>-->
+<!--                            <goal>run</goal>-->
+<!--                        </goals>-->
+<!--                    </execution>-->
+<!--                </executions>-->
+<!--            </plugin>-->
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-antrun-plugin</artifactId>
@@ -261,19 +292,15 @@
                         <phase>package</phase>
                         <configuration>
                             <target>
-                                <echo message="Copiando JAR e .platform para o diretório de deploy AWS..."/>
-                                <mkdir dir="${project.build.directory}/${project.build.finalName}-AWS/"/>
-                                <copy file="${project.build.directory}/${project.build.finalName}.jar"
-                                      tofile="${project.build.directory}/${project.build.finalName}-AWS/application.jar"
-                                      overwrite="true"/>
-                                <copy todir="${project.build.directory}/${project.build.finalName}-AWS/.platform" overwrite="true">
+
+                                <copy todir="${project.build.directory}/${project.build.finalName}-AWS/" overwrite="false">
+                                    <fileset file="${project.build.directory}/${project.build.finalName}.jar"/>
+                                </copy>
+                                <copy todir="${project.build.directory}/${project.build.finalName}-AWS/.platform" overwrite="false">
                                     <fileset dir="./.platform/" includes="**"/>
                                 </copy>
-                                <echo message="Criando pacote .jar para AWS Elastic Beanstalk..."/>
-                                <zip compress="true"
-                                     destfile="${project.build.directory}/${project.build.finalName}-AWS.zip"
-                                     basedir="${project.build.directory}/${project.build.finalName}-AWS/"/>
-                                <echo message="Pacote AWS Elastic Beanstalk criado em: ${project.build.directory}/${project.build.finalName}-AWS.zip"/>
+                                <zip compress="false" destfile="${project.build.directory}/${project.build.finalName}-AWS.jar" basedir="${project.build.directory}/${project.build.finalName}-AWS/"/>
+
                             </target>
                         </configuration>
                         <goals>
