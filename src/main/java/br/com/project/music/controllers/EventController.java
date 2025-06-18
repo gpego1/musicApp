@@ -182,7 +182,7 @@ public class EventController {
         return new ResponseEntity<>(savedEvent, HttpStatus.CREATED);
     }
     @PostMapping("/{eventId}/upload")
-    public ResponseEntity<String> uploadEventImage(@PathVariable Long eventId, @RequestParam("file") MultipartFile file) {
+    public ResponseEntity<String> uploadEventImage(@PathVariable Long eventId, @RequestParam("foto") MultipartFile file) {
              try {
                  String s3Key = eventService.uploadEventImage(eventId, file);
                  return ResponseEntity.ok("Imagem carregada com sucesso! Chave S3: " + s3Key);
