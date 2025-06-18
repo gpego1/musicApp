@@ -48,9 +48,6 @@ public class UserServiceImpl implements UserService {
         this.s3Client = s3Client;
     }
 
-    @Value("${file.upload.profile-images-dir}")
-    private String uploadDirectory;
-
     @Value("${aws.s3.bucket-name}")
     private String bucketName;
 

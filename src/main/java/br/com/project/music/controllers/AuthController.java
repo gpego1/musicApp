@@ -62,8 +62,6 @@ public class AuthController {
     @Autowired
     private UserRepository userRepository;
 
-    @Value("${file.upload.profile-images-dir}")
-    private String uploadDirectory;
 
     @PostMapping("/register")
     public ResponseEntity<UserDTO> registerUser(@Valid @RequestBody UserDTO userDTO) {
@@ -249,7 +247,7 @@ public class AuthController {
     }
 
     @GetMapping("/user/me/profile-image")
-    public ResponseEntity<Void> getProfileImage(@AuthenticationPrincipal UserDetails userDetails) { // Retorna Void para redirecionamento
+    public ResponseEntity<Void> getProfileImage(@AuthenticationPrincipal UserDetails userDetails) {
         if (userDetails == null) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
         }

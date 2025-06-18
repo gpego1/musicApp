@@ -1,5 +1,4 @@
 package br.com.project.music.config;
-
 import com.google.auth.oauth2.GoogleCredentials;
 import com.google.firebase.FirebaseApp;
 import com.google.firebase.FirebaseOptions;
@@ -28,7 +27,7 @@ public class FirebaseConfig {
         FirebaseOptions options = FirebaseOptions.builder()
                 .setCredentials(GoogleCredentials.fromStream(serviceAccount))
                 .build();
-        file.delete();
+        //file.delete();
         return FirebaseApp.initializeApp(options);
     }
 
@@ -36,7 +35,7 @@ public class FirebaseConfig {
 
         File file = new File(filePath);
         // Fix for beanstalk (since it replaces \n for n)
-        content = content.replaceAll("@", "\n");
+        content = content.replaceAll("#", "\n");
         // Create parent directories if they don't exist
         File parent = file.getParentFile();
         if (parent != null) {

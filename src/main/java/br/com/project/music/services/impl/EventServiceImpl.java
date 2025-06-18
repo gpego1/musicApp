@@ -52,9 +52,6 @@ public class EventServiceImpl implements EventService {
         this.genresRepository = genresRepository;
     }
 
-    @Value("${file.upload.event-images-dir}")
-    private String eventUploadDirectory;
-
     @Value("${aws.s3.bucket-name}")
     private String bucketName;
 
@@ -234,20 +231,16 @@ public class EventServiceImpl implements EventService {
         return s3Client.getUrl(bucketName, s3Key);
     }
 
-    public String getEventImageContentType(Long eventId) throws IOException {
+    public String getEventImageContentType(Long eventId) {
         Event event = eventRepository.findById(eventId)
                 .orElseThrow(() -> new RuntimeException("Evento não encontrado com ID: " + eventId));
         String contentType = event.getEventPictureContentType();
+
         if (contentType == null || contentType.isEmpty()) {
-            String fileName = event.getFoto();
-            if (fileName != null && !fileName.isEmpty()) {
-                Path filePath = Paths.get(eventUploadDirectory).resolve(fileName).normalize();
-                contentType = Files.probeContentType(filePath);
-            }
-            if (contentType == null) {
-                contentType = MediaType.APPLICATION_OCTET_STREAM_VALUE;
-            }
+            System.err.println("Content-Type para imagem do evento ID " + eventId + " não encontrado no banco de dados. Retornando APPLICATION_OCTET_STREAM_VALUE.");
+            return MediaType.APPLICATION_OCTET_STREAM_VALUE;
         }
+
         return contentType;
     }
     private EventDTO convertToDTO(Event event) {

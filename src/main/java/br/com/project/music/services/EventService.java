@@ -30,5 +30,5 @@ public interface EventService {
     List<Event> getEventByReservaId(Long reservaId);
     String uploadEventImage(Long eventId, MultipartFile file) throws IOException;
     URL getEventImage(Long eventId);
-    String getEventImageContentType(Long eventId) throws IOException;
+    String getEventImageContentType(Long eventId);
 }

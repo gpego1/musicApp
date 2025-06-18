@@ -80,19 +80,4 @@ public class NotificationController {
         }
     }
 
-    @GetMapping("/auth/user/me")
-    public ResponseEntity<Map<String, Object>> getUserDetails(HttpServletRequest request) {
-        String authorizationHeader = request.getHeader("Authorization");
-        if (authorizationHeader != null && authorizationHeader.startsWith("Bearer ")) {
-            String token = authorizationHeader.substring(7);
-            String userEmail = authService.getEmailFromToken(token);
-            if (userEmail != null) {
-                User user = userService.getUserByEmail(userEmail).orElse(null);
-                if (user != null) {
-                    return ResponseEntity.ok(Map.of("id", user.getId(), "nome", user.getName(), "role", user.getRole().name(), "bio", user.getBio()));
-                }
-            }
-        }
-        return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
-    }
 }

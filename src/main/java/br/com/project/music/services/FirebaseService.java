@@ -25,14 +25,7 @@ public class FirebaseService {
         System.out.println("FirebaseService inicializado com FirebaseApp: " + firebaseApp.getName());
     }
 
-    /**
-     * Stores or updates the FCM token for a user in the database.
-     * This method can be called directly by other services/controllers.
-     *
-     * @param userId The ID of the user.
-     * @param fcmToken The FCM registration token from the user's device.
-     * @throws IllegalArgumentException if the user is not found.
-     */
+
     public void storeUserToken(Long userId, String fcmToken) {
         if (userId == null || fcmToken == null || fcmToken.trim().isEmpty()) {
             throw new IllegalArgumentException("User ID and FCM Token must not be null or empty.");
@@ -49,15 +42,6 @@ public class FirebaseService {
         }
     }
 
-    /**
-     * Sends a push notification to a specific user.
-     * It retrieves the FCM token from the database using the userId.
-     *
-     * @param request The NotificationRequest containing userId, title, message, and optional data.
-     * @return The message ID from Firebase.
-     * @throws IllegalArgumentException if the user or their FCM token is not found.
-     * @throws FirebaseMessagingException if there's an error sending the notification via Firebase.
-     */
     public String sendNotificationToUser(NotificationRequest request) throws FirebaseMessagingException {
         if (request.getUsuarioId() == null) {
             throw new IllegalArgumentException("User ID (usuarioId) is required to send a notification.");
