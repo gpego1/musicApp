@@ -28,6 +28,7 @@ import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.servlet.view.RedirectView;
 import java.io.IOException;
 import java.net.MalformedURLException;
+import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URL;
 import java.util.Collections;
@@ -268,17 +269,33 @@ public class AuthController {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
         }
         User user = userOptional.get();
+        String finalImageUrl = null;
 
         if (user.getGoogleId() != null && !user.getGoogleId().isEmpty() &&
-                user.getGoogleProfilePictureUrl() != null && !user.getGoogleProfilePictureUrl().isEmpty()) {
-            try {
-                URL googleImageUrl = new URL(user.getGoogleProfilePictureUrl());
-                return ResponseEntity.status(HttpStatus.FOUND)
-                        .location(googleImageUrl.toURI())
-                        .build();
-            } catch (MalformedURLException | URISyntaxException ex) {
-                System.err.println("URL da imagem do Google malformada ou erro de URI: " + ex.getMessage());
+                user.getGoogleProfilePictureUrlS3() != null && !user.getGoogleProfilePictureUrlS3().isEmpty()) {
 
+            finalImageUrl = user.getGoogleProfilePictureUrlS3();
+            System.out.println("DEBUG: Usando URL do S3 para usuário Google: " + finalImageUrl);
+
+        }
+        else if (user.getGoogleId() != null && !user.getGoogleId().isEmpty() &&
+                user.getGoogleProfilePictureUrl() != null && !user.getGoogleProfilePictureUrl().isEmpty()) {
+
+            finalImageUrl = user.getGoogleProfilePictureUrl();
+            System.out.println("DEBUG: Usando URL original do Google como fallback: " + finalImageUrl);
+        }
+        else if (user.getFoto() != null && !user.getFoto().isEmpty()) {
+            finalImageUrl = user.getFoto();
+            System.out.println("DEBUG: Usando URL do campo 'foto': " + finalImageUrl);
+        }
+        if (finalImageUrl != null) {
+            try {
+                return ResponseEntity.status(HttpStatus.FOUND)
+                        .location(new URI(finalImageUrl))
+                        .build();
+            } catch (URISyntaxException e) {
+                System.err.println("Erro de URI ao redirecionar para imagem: " + e.getMessage());
+                return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
             }
         }
         try {
@@ -305,16 +322,34 @@ public class AuthController {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
         }
         User user = userOptional.get();
+        String finalImageUrl = null;
 
         if (user.getGoogleId() != null && !user.getGoogleId().isEmpty() &&
+                user.getGoogleProfilePictureUrlS3() != null && !user.getGoogleProfilePictureUrlS3().isEmpty()) {
+
+            finalImageUrl = user.getGoogleProfilePictureUrlS3();
+            System.out.println("DEBUG: Usando URL do S3 para foto de perfil do usuário " + userId + ": " + finalImageUrl);
+
+        }
+        else if (user.getGoogleId() != null && !user.getGoogleId().isEmpty() &&
                 user.getGoogleProfilePictureUrl() != null && !user.getGoogleProfilePictureUrl().isEmpty()) {
+
+            finalImageUrl = user.getGoogleProfilePictureUrl();
+            System.out.println("DEBUG: Usando URL original do Google como fallback para usuário " + userId + ": " + finalImageUrl);
+        }
+        else if (user.getFoto() != null && !user.getFoto().isEmpty()) {
+            finalImageUrl = user.getFoto();
+            System.out.println("DEBUG: Usando URL do campo 'foto' para usuário " + userId + ": " + finalImageUrl);
+        }
+
+        if (finalImageUrl != null) {
             try {
-                URL googleImageUrl = new URL(user.getGoogleProfilePictureUrl());
                 return ResponseEntity.status(HttpStatus.FOUND)
-                        .location(googleImageUrl.toURI())
+                        .location(new URI(finalImageUrl))
                         .build();
-            } catch (MalformedURLException | URISyntaxException ex) {
-                System.err.println("URL da imagem do Google malformada ou erro de URI para usuário " + userId + ": " + ex.getMessage());
+            } catch (URISyntaxException e) {
+                System.err.println("Erro de URI ao redirecionar para imagem do usuário " + userId + ": " + e.getMessage());
+                return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
             }
         }
         try {
