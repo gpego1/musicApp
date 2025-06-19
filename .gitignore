@@ -47,10 +47,10 @@ logs/app.log
 
 # Ignorar arquivos de configuração sensíveis ou gerados localmente
 .env
-./src/main/resources/application.properties
-./src/main/java/br/com/project/music/config/FirebaseConfig.java
-.firebase_pre.json
-.firebase.json
+/src/main/java/br/com/project/music/config/FirebaseConfig.java
+firebase_pre.json
+firebase.json
+src/main/resources/application-local.properties
 
 # Ignorar arquivos de build do Maven
 target/
