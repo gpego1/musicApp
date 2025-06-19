@@ -13,7 +13,7 @@ import java.time.format.DateTimeFormatter;
 @Configuration
 public class JacksonConfig {
 
-    private static final String DATE_TIME_FORMAT = "yyyy-MM-dd'T'HH:mm:ss";
+    private static final String DATE_TIME_FORMAT = "dd/MM/yyyy HH:mm:ss";
     private static final DateTimeFormatter DATE_TIME_FORMATTER = DateTimeFormatter.ofPattern(DATE_TIME_FORMAT);
 
     private static final String TIME_FORMAT = "HH:mm:ss";

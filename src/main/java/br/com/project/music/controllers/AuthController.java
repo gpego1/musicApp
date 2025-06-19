@@ -154,29 +154,40 @@ public class AuthController {
             );
             String jwtToken = authService.authenticateWithGoogle(token);
 
+            String finalProfilePictureUrl = null;
+            if (user.getGoogleId() != null && user.getGoogleProfilePictureUrlS3() != null && !user.getGoogleProfilePictureUrlS3().isEmpty()) {
+                finalProfilePictureUrl = user.getGoogleProfilePictureUrlS3();
+                logger.debug("Usando URL da foto de perfil do S3 para usuário Google: {}", finalProfilePictureUrl);
+            }
+            else if (user.getGoogleId() != null && user.getGoogleProfilePictureUrl() != null && !user.getGoogleProfilePictureUrl().isEmpty()) {
+                finalProfilePictureUrl = user.getGoogleProfilePictureUrl();
+                logger.debug("Usando URL da foto de perfil original do Google como fallback: {}", finalProfilePictureUrl);
+            }
+            else if (user.getFoto() != null && !user.getFoto().isEmpty()) {
+                finalProfilePictureUrl = "/users/" + user.getId() + "/profile-image";
+                logger.debug("Usando URL da foto de perfil local: {}", finalProfilePictureUrl);
+            } else {
+                logger.debug("Nenhuma URL de foto de perfil encontrada para o usuário.");
+            }
             AuthResponse authResponse = new AuthResponse(
                     jwtToken,
                     user.getId(),
                     user.getName(),
                     user.getEmail(),
                     user.getRole(),
-                    user.getGoogleProfilePictureUrl() != null && !user.getGoogleProfilePictureUrl().isEmpty()
-                            ? user.getGoogleProfilePictureUrl()
-                            : (user.getFoto() != null && !user.getFoto().isEmpty()
-                            ? "/users/" + user.getId() + "/profile-image"
-                            : null),
+                    finalProfilePictureUrl,
                     user.getGoogleId() != null,
                     user.getSenha() != null
             );
             return ResponseEntity.ok(authResponse);
         } catch (IllegalArgumentException e) {
-            logger.error("Dados do Google incompletos: {}", e.getMessage());
-            return ResponseEntity.badRequest().body(new AuthResponse("Dados incompletos: " + e.getMessage()));
+            logger.error("Dados do Google incompletos ou inválidos: {}", e.getMessage());
+            return ResponseEntity.badRequest().body(new AuthResponse("Dados incompletos ou inválidos: " + e.getMessage()));
         } catch (IllegalStateException e) {
             logger.error("Conflito com conta existente: {}", e.getMessage());
             return ResponseEntity.status(HttpStatus.CONFLICT).body(new AuthResponse("Conflito de conta: " + e.getMessage()));
         } catch (Exception e) {
-            logger.error("Falha no login com Google", e);
+            logger.error("Falha geral no login com Google", e);
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(new AuthResponse("Falha na autenticação: " + e.getMessage()));
         }
     }

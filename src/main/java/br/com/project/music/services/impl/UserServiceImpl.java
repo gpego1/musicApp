@@ -3,16 +3,14 @@ import br.com.project.music.business.dtos.UserDTO;
 import br.com.project.music.business.entities.Musico;
 import br.com.project.music.business.entities.User;
 import br.com.project.music.business.repositories.UserRepository;
+import br.com.project.music.services.S3Service;
 import br.com.project.music.services.UserService;
 import com.amazonaws.services.s3.AmazonS3;
-import com.amazonaws.services.s3.model.GetObjectRequest;
 import com.amazonaws.services.s3.model.ObjectMetadata;
 import com.amazonaws.services.s3.model.PutObjectRequest;
-import com.amazonaws.services.s3.model.S3Object;
 import jakarta.persistence.EntityNotFoundException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.core.io.InputStreamResource;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
@@ -20,14 +18,8 @@ import org.springframework.security.oauth2.core.user.OAuth2User;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
-
 import java.io.IOException;
-import java.io.InputStream;
 import java.net.URL;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.nio.file.StandardCopyOption;
 import java.sql.Timestamp;
 import java.time.Instant;
 import java.util.List;
@@ -35,17 +27,21 @@ import java.util.Optional;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
+
 @Service
 public class UserServiceImpl implements UserService {
+    private static final org.slf4j.Logger logger = org.slf4j.LoggerFactory.getLogger(UserServiceImpl.class);
     private final UserRepository userRepository;
     private final BCryptPasswordEncoder passwordEncoder;
     private final AmazonS3 s3Client;
+    private final S3Service s3Service;
 
     @Autowired
-    public UserServiceImpl(UserRepository userRepository, BCryptPasswordEncoder passwordEncoder, AmazonS3 s3Client) {
+    public UserServiceImpl(UserRepository userRepository, BCryptPasswordEncoder passwordEncoder, AmazonS3 s3Client, S3Service s3Service) {
         this.userRepository = userRepository;
         this.passwordEncoder = passwordEncoder;
         this.s3Client = s3Client;
+        this.s3Service = s3Service;
     }
 
     @Value("${aws.s3.bucket-name}")
@@ -200,19 +196,42 @@ public class UserServiceImpl implements UserService {
         String email = oauthUser.getAttribute("email");
         String googleId = oauthUser.getAttribute("sub");
         String name = oauthUser.getAttribute("name");
-        String picture = oauthUser.getAttribute("picture");
+        String googleOriginalPictureUrl = oauthUser.getAttribute("picture");
 
         if (email == null || googleId == null) {
-            throw new IllegalArgumentException("Missing required Google OAuth2 attributes");
+            logger.error("Dados do Google incompletos: e-mail ou 'sub' ausentes.");
+            throw new IllegalArgumentException("Atributos Google OAuth2 obrigatórios ausentes (email ou sub)");
         }
+
         Optional<User> existingUserByGoogleId = userRepository.findByGoogleId(googleId);
         if (existingUserByGoogleId.isPresent()) {
             User user = existingUserByGoogleId.get();
+
             if (name != null && !name.equals(user.getName())) {
                 user.setName(name);
             }
-            if (picture != null && !picture.equals(user.getGoogleProfilePictureUrl())) {
-                user.setGoogleProfilePictureUrl(picture);
+
+            if (user.getSenha() == null || user.getSenha().isEmpty()) {
+                user.setSenha(passwordEncoder.encode(UUID.randomUUID().toString()));
+                logger.info("Gerada senha aleatória para usuário existente {} ao vincular Google.", user.getEmail());
+            }
+
+            boolean googleUrlChanged = (googleOriginalPictureUrl != null && !googleOriginalPictureUrl.equals(user.getGoogleProfilePictureUrl()));
+            boolean s3UrlMissing = (user.getGoogleProfilePictureUrlS3() == null || user.getGoogleProfilePictureUrlS3().isEmpty());
+
+            if (googleUrlChanged) {
+                user.setGoogleProfilePictureUrl(googleOriginalPictureUrl);
+            }
+
+            if (googleOriginalPictureUrl != null && (googleUrlChanged || s3UrlMissing)) {
+                String s3FileName = "google_" + googleId + "_" + UUID.randomUUID().toString().substring(0, 8) + ".jpg";
+                String uploadedS3Url = s3Service.uploadImageFromUrl(googleOriginalPictureUrl, s3FileName);
+                if (uploadedS3Url != null) {
+                    user.setGoogleProfilePictureUrlS3(uploadedS3Url);
+                    logger.info("Foto de perfil do S3 atualizada para usuário Google existente {}: {}", user.getEmail(), uploadedS3Url);
+                } else {
+                    logger.warn("Falha ao fazer upload da foto de perfil Google atualizada para o usuário: {}", user.getEmail());
+                }
             }
             return userRepository.save(user);
         }
@@ -222,15 +241,25 @@ public class UserServiceImpl implements UserService {
             User user = existingUserByEmail.get();
             if (user.getGoogleId() == null) {
                 user.setGoogleId(googleId);
-                user.setGoogleProfilePictureUrl(picture);
+                user.setGoogleProfilePictureUrl(googleOriginalPictureUrl);
 
+                if (googleOriginalPictureUrl != null) {
+                    String s3FileName = "google_" + googleId + "_" + UUID.randomUUID().toString().substring(0, 8) + ".jpg";
+                    String uploadedS3Url = s3Service.uploadImageFromUrl(googleOriginalPictureUrl, s3FileName);
+                    if (uploadedS3Url != null) {
+                        user.setGoogleProfilePictureUrlS3(uploadedS3Url);
+                        logger.info("Foto de perfil do S3 carregada para usuário vinculado {}: {}", user.getEmail(), uploadedS3Url);
+                    } else {
+                        logger.warn("Falha ao carregar a foto de perfil do Google para o usuário vinculado: {}", user.getEmail());
+                    }
+                }
                 if (user.getRole() == null ) {
                     user.setRole(User.Role.CLIENT);
                 }
-
                 return userRepository.save(user);
             } else if (!user.getGoogleId().equals(googleId)) {
-                throw new IllegalStateException("Email already associated with different Google account");
+                logger.error("Conflito de e-mail: e-mail {} já associado a um Google ID diferente.", email);
+                throw new IllegalStateException("E-mail já associado a uma conta Google diferente");
             }
             return user;
         }
@@ -238,13 +267,25 @@ public class UserServiceImpl implements UserService {
         newUser.setEmail(email);
         newUser.setName(name != null ? name : email.split("@")[0]);
         newUser.setGoogleId(googleId);
-        newUser.setGoogleProfilePictureUrl(picture);
-        newUser.setFoto(picture);
+        newUser.setGoogleProfilePictureUrl(googleOriginalPictureUrl);
+
+        if (googleOriginalPictureUrl != null) {
+            String s3FileName = "google_" + googleId + "_" + UUID.randomUUID().toString().substring(0, 8) + ".jpg";
+            String uploadedS3Url = s3Service.uploadImageFromUrl(googleOriginalPictureUrl, s3FileName);
+            if (uploadedS3Url != null) {
+                newUser.setGoogleProfilePictureUrlS3(uploadedS3Url);
+                logger.info("Foto de perfil do S3 carregada para novo usuário Google {}: {}", newUser.getEmail(), uploadedS3Url);
+            } else {
+                logger.warn("Falha ao carregar a foto de perfil do Google para o novo usuário: {}", newUser.getEmail());
+            }
+        }
+        newUser.setFoto(null);
         newUser.setDataCriacao(Timestamp.from(Instant.now()));
         newUser.setRole(User.Role.CLIENT);
         newUser.setSenha(passwordEncoder.encode(UUID.randomUUID().toString()));
         return userRepository.save(newUser);
     }
+
     @Transactional
     public User findOrCreateGoogleUser(String email, String googleId) {
         return userRepository.findByEmail(email).orElseGet(() -> {

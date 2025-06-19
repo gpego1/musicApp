@@ -27,24 +27,25 @@ public class FirebaseConfig {
         FirebaseOptions options = FirebaseOptions.builder()
                 .setCredentials(GoogleCredentials.fromStream(serviceAccount))
                 .build();
-        //file.delete();
+        file.delete();
         return FirebaseApp.initializeApp(options);
     }
 
     public static void createFileFromString(String filePath, String content) throws IOException {
 
         File file = new File(filePath);
-        // Fix for beanstalk (since it replaces \n for n)
+// Fix for beanstalk (since it replaces \n for n)
         content = content.replaceAll("#", "\n");
-        // Create parent directories if they don't exist
+// Create parent directories if they don't exist
         File parent = file.getParentFile();
         if (parent != null) {
             parent.mkdirs();
         }
 
-        // Write content to file
+// Write content to file
         try (FileWriter writer = new FileWriter(file)) {
             writer.write(content);
         }
     }
+
 }

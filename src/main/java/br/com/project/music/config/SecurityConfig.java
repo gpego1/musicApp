@@ -39,28 +39,27 @@ public class SecurityConfig {
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http.cors(cors -> cors.configurationSource(corsConfigurationSource()))
-                .csrf(AbstractHttpConfigurer::disable)
-                .authorizeHttpRequests(auth -> auth
-                        .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
-                        .requestMatchers( "/auth/login", "/auth/register", "/auth/check-email", "/auth/change-password", "/auth/user/me", "/auth/google-login").permitAll()
-                        .requestMatchers("/public/**").permitAll()
-                        .requestMatchers("/manage/**").permitAll()
-                        .requestMatchers("/oauth2/authorization/google/**", "/login/oauth2/code/google").permitAll()
-                        .requestMatchers("/genres/**", "/musicos/**", "/avaliacoes/**", "/eventos/**", "/places/**", "/users/**", "/reservas/**", "/notifications/**", "/contratos/**", "/escalas/**").permitAll()
-                        .requestMatchers(HttpMethod.POST, "/notifications/fcm/send").authenticated()
-                        .requestMatchers(HttpMethod.POST, "/notifications/fcm/register").authenticated()
-                        .requestMatchers(HttpMethod.PUT, "/contratos/{idEvento}/{idMusico}/activate").permitAll()
-                        .requestMatchers("/notifications/**").authenticated()
-                        .anyRequest().authenticated()
-                )
-                .sessionManagement(sess -> sess.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
-                .oauth2Login(oauth2 -> oauth2
-                        .loginProcessingUrl("/login/oauth2/code/*")
-                        .successHandler(oAuth2AuthenticationSuccessHandler())
-                        .failureHandler(authenticationFailureHandler())
-                )
-                .authenticationProvider(authenticationProvider())
-                .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class);
+        .csrf(AbstractHttpConfigurer::disable)
+        .authorizeHttpRequests(auth -> auth
+                .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
+                .requestMatchers( "auth/**","/auth/login", "/auth/register", "/auth/check-email", "/auth/change-password", "/auth/user/me", "/auth/google-login").permitAll()
+                .requestMatchers("/public/**").permitAll()
+                .requestMatchers("/oauth2/authorization/google/**", "/login/oauth2/code/google").permitAll()
+                .requestMatchers("/genres/**", "/musicos/**", "/avaliacoes/**", "/eventos/**", "/places/**", "/users/**", "/reservas/**", "/notifications/**", "/contratos/**", "/escalas/**").permitAll()
+                .requestMatchers(HttpMethod.POST, "/notifications/fcm/send").authenticated()
+                .requestMatchers(HttpMethod.POST, "/notifications/fcm/register").authenticated()
+                .requestMatchers(HttpMethod.PUT, "/contratos/{idEvento}/{idMusico}/activate").permitAll()
+                .requestMatchers("/notifications/**").authenticated()
+                .anyRequest().authenticated()
+        )
+        .sessionManagement(sess -> sess.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+        .oauth2Login(oauth2 -> oauth2
+                .loginProcessingUrl("/login/oauth2/code/*")
+                .successHandler(oAuth2AuthenticationSuccessHandler())
+                .failureHandler(authenticationFailureHandler())
+        )
+        .authenticationProvider(authenticationProvider())
+        .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class);
 
 
         return http.build();

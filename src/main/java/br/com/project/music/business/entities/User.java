@@ -42,6 +42,9 @@ public class User {
     @Column(name = "google_pfp", length = 500, nullable = true)
     private String googleProfilePictureUrl;
 
+    @Column(name = "google_pfp_s3", length = 500, nullable = true)
+    private String googleProfilePictureUrlS3;
+
     @Column(name = "foto", nullable = true)
     private String foto;
 
