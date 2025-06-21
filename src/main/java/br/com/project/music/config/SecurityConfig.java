@@ -49,6 +49,8 @@ public class SecurityConfig {
                 .requestMatchers("/public/**").permitAll()
                 .requestMatchers("/oauth2/authorization/google/**", "/login/oauth2/code/google").permitAll()
                 .requestMatchers("/genres/**", "/musicos/**", "/avaliacoes/**", "/eventos/**", "/places/**", "/users/**", "/reservas/**", "/notifications/**", "/contratos/**", "/escalas/**").permitAll()
+                .requestMatchers("/actuator/**").permitAll()
+                .requestMatchers("/v2/api-docs", "/v3/api-docs/**", "/swagger-resources/**", "/swagger-ui/**","/webjars/**").permitAll()
                 .requestMatchers(HttpMethod.POST, "/notifications/fcm/send").authenticated()
                 .requestMatchers(HttpMethod.POST, "/notifications/fcm/register").authenticated()
                 .requestMatchers(HttpMethod.PUT, "/contratos/{idEvento}/{idMusico}/activate").permitAll()
@@ -108,19 +110,6 @@ public class SecurityConfig {
         source.registerCorsConfiguration("/**", configuration);
         return source;
     }
-
-    @Bean
-    public WebSecurityCustomizer webSecurityCustomizer() {
-        return web -> web.ignoring().requestMatchers(
-                "/v2/api-docs/**",
-                "/v3/api-docs/**",
-                "/swagger-resources/**",
-                "/swagger-ui.html",
-                "/swagger-ui/**",
-                "/webjars/**",
-                "/actuator/**"
-        );
-    };
     @Bean
     public FilterRegistrationBean<org.springframework.web.filter.CorsFilter> corsFilterRegistrationBean() {
         CorsConfiguration configuration = new CorsConfiguration();
@@ -137,4 +126,5 @@ public class SecurityConfig {
         bean.setOrder(Ordered.HIGHEST_PRECEDENCE);
         return bean;
     }
+
 }

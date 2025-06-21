@@ -1,23 +1,6 @@
 version: '3.8'
 
 services:
-  # MySQL Database
-  db:
-    image: mysql:8.0
-    container_name: musicapp-db
-    environment:
-      MYSQL_ROOT_PASSWORD: 1234
-      MYSQL_DATABASE: eventomusical
-    ports:
-      - "3307:3306"
-    volumes:
-      - mysql-data:/var/lib/mysql
-    healthcheck:
-      test: ["CMD", "mysql", "--protocol=tcp", "-uroot", "-p1234", "-e", "SELECT 1"]
-      interval: 10s
-      timeout: 10s
-      retries: 10
-      start_period: 30s
 
   # Elasticsearch
   elasticsearch:
@@ -86,7 +69,6 @@ services:
 
 
 volumes:
-  mysql-data:
   es-data:
   logstash-data:
 

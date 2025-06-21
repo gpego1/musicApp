@@ -35,9 +35,9 @@ public class ContratoService {
 
     @Transactional
     public Contrato save(Contrato contrato) {
-        Event evento = eventRepository.findById(contrato.getIdContrato().getEvento().getIdEvento()) // <-- ERROR HERE
+        Event evento = eventRepository.findById(contrato.getIdContrato().getEvento().getIdEvento())
                 .orElseThrow(() -> new ResourceNotFoundException("Evento não encontrado com ID: " + contrato.getIdContrato().getEvento().getIdEvento()));
-        Musico musico = musicoRepository.findById(contrato.getIdContrato().getMusico().getIdMusico()) // <-- ERROR HERE
+        Musico musico = musicoRepository.findById(contrato.getIdContrato().getMusico().getIdMusico())
                 .orElseThrow(() -> new ResourceNotFoundException("Músico não encontrado com ID: " + contrato.getIdContrato().getMusico().getIdMusico()));
 
 
