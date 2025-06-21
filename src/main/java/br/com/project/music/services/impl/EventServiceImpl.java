@@ -13,6 +13,8 @@ import com.amazonaws.services.s3.AmazonS3;
 import com.amazonaws.services.s3.AmazonS3Client;
 import com.amazonaws.services.s3.model.ObjectMetadata;
 import com.amazonaws.services.s3.model.PutObjectRequest;
+import io.jsonwebtoken.Clock;
+import org.joda.time.DateTime;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.cglib.core.Local;
@@ -58,8 +60,6 @@ public class EventServiceImpl implements EventService {
     @Value("${aws.s3.event-images-dir}")
     private String eventImagesBasePath;
 
-
-
     @Override
     @Transactional
     public EventDTO createEvent(EventDTO eventDTO) {
@@ -71,6 +71,12 @@ public class EventServiceImpl implements EventService {
 
         Event event = new Event();
         event.setNomeEvento(eventDTO.getNomeEvento());
+
+        LocalDateTime localDateTime = LocalDateTime.now();
+        if (eventDTO.getDataHora().isBefore(localDateTime)) {
+            throw new EventCreationException("O formato da data inserido refere-se a uma data passada.");
+        }
+
         event.setDataHora(eventDTO.getDataHora());
         event.setHoraEncerramento(eventDTO.getHoraEncerramento());
         event.setDescricao(eventDTO.getDescricao());
