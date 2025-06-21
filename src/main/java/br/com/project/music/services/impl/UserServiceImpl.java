@@ -52,6 +52,14 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public UserDTO createUser(UserDTO userDTO) {
+
+        if (userDTO.getEmail() == null || userDTO.getEmail().isEmpty()) {
+            throw new IllegalArgumentException("Email is required");
+        }
+
+        if (userRepository.findByEmail(userDTO.getEmail()).isPresent()) {
+            throw new IllegalArgumentException("Email já cadastrado: " + userDTO.getEmail());
+        }
         User user = new User();
         user.setName(userDTO.getName());
         user.setEmail(userDTO.getEmail());

@@ -50,7 +50,7 @@ logs/app.log
 /src/main/java/br/com/project/music/config/FirebaseConfig.java
 firebase_pre.json
 firebase.json
-src/main/resources/application-local.properties
+src/main/resources/application.properties
 
 # Ignorar arquivos de build do Maven
 target/
