@@ -33,6 +33,7 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
 import java.time.LocalDateTime;
+import java.time.LocalTime;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
@@ -75,6 +76,12 @@ public class EventServiceImpl implements EventService {
         LocalDateTime localDateTime = LocalDateTime.now();
         if (eventDTO.getDataHora().isBefore(localDateTime)) {
             throw new EventCreationException("O formato da data inserido refere-se a uma data passada.");
+        }
+
+        LocalTime startTime = eventDTO.getDataHora().toLocalTime();
+
+        if (eventDTO.getHoraEncerramento().isBefore(startTime)){
+            throw new EventCreationException("A hora de encerramento não pode ser anterior à hora de início do evento.");
         }
 
         event.setDataHora(eventDTO.getDataHora());
