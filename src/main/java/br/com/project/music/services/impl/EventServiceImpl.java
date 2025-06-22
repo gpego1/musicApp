@@ -122,6 +122,12 @@ public class EventServiceImpl implements EventService {
             event.setLocalEvento(eventDTO.getLocalEvento());
             event.setHost(eventDTO.getHost());
             event.setFoto(eventDTO.getFoto());
+
+            LocalTime startTime = eventDTO.getDataHora().toLocalTime();
+            if (eventDTO.getHoraEncerramento().isBefore(startTime)){
+                throw new EventCreationException("A hora de encerramento não pode ser anterior à hora de início do evento.");
+            }
+
             return convertToDTO(eventRepository.save(event));
         }
         return null;
