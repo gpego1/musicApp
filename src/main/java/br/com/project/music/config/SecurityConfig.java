@@ -45,7 +45,7 @@ public class SecurityConfig {
         http.csrf(AbstractHttpConfigurer::disable)
         .authorizeHttpRequests(auth -> auth
                 .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
-                .requestMatchers( "auth/**","/auth/login", "/auth/register", "/auth/check-email", "/auth/change-password", "/auth/user/me", "/auth/google-login").permitAll()
+                .requestMatchers( "auth/**","/auth/login", "/auth/register", "/auth/check-email", "/auth/change-password", "/auth/user/me", "/auth/google-login", "auth/user/me/profile-image","auth/users/{userId}/profile-image").permitAll()
                 .requestMatchers("/public/**").permitAll()
                 .requestMatchers("/oauth2/authorization/google/**", "/login/oauth2/code/google").permitAll()
                 .requestMatchers("/genres/**", "/musicos/**", "/avaliacoes/**", "/eventos/**", "/places/**", "/users/**", "/reservas/**", "/notifications/**", "/contratos/**", "/escalas/**").permitAll()

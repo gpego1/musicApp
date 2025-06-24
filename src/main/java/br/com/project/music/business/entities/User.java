@@ -36,7 +36,7 @@ public class User {
     @Column(name = "fcm_token", length = 255, nullable = true)
     private String fcmToken;
 
-    @Column(name = "biografia", nullable = true)
+    @Column(name = "biografia", nullable = true, columnDefinition = "TEXT")
     private String bio;
 
     @Column(name = "google_id", nullable = true)

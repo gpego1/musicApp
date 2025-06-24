@@ -273,21 +273,16 @@ public class AuthController {
 
         if (user.getGoogleId() != null && !user.getGoogleId().isEmpty() &&
                 user.getGoogleProfilePictureUrlS3() != null && !user.getGoogleProfilePictureUrlS3().isEmpty()) {
-
             finalImageUrl = user.getGoogleProfilePictureUrlS3();
-            System.out.println("DEBUG: Usando URL do S3 para usuário Google: " + finalImageUrl);
-
         }
         else if (user.getGoogleId() != null && !user.getGoogleId().isEmpty() &&
                 user.getGoogleProfilePictureUrl() != null && !user.getGoogleProfilePictureUrl().isEmpty()) {
-
             finalImageUrl = user.getGoogleProfilePictureUrl();
-            System.out.println("DEBUG: Usando URL original do Google como fallback: " + finalImageUrl);
         }
         else if (user.getFoto() != null && !user.getFoto().isEmpty()) {
             finalImageUrl = user.getFoto();
-            System.out.println("DEBUG: Usando URL do campo 'foto': " + finalImageUrl);
         }
+
         if (finalImageUrl != null) {
             try {
                 return ResponseEntity.status(HttpStatus.FOUND)
@@ -305,7 +300,7 @@ public class AuthController {
                     .build();
 
         } catch (RuntimeException e) {
-            if (e.getMessage().contains("Usuário não encontrado") || e.getMessage().contains("Chave S3 da imagem de perfil não encontrada")) {
+            if (e.getMessage().contains("Usuário não encontrado") || e.getMessage().contains("Chave S3 da imagem de perfil não encontrada") || e.getMessage().contains("URL da imagem de perfil não encontrada")) {
                 return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
             }
             System.err.println("Erro ao buscar imagem de perfil do S3: " + e.getMessage());

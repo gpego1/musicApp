@@ -343,23 +343,37 @@ public class UserServiceImpl implements UserService {
                     metadata
             );
             s3Client.putObject(putObjectRequest);
-            user.setFoto(s3Key);
+
+
+            URL s3FullUrl = s3Client.getUrl(bucketName, s3Key);
+            user.setFoto(s3FullUrl.toString());
             user.setProfilePictureContentType(file.getContentType());
             userRepository.save(user);
-            return s3Key;
+
+            return s3FullUrl.toString();
         } catch (Exception e) {
             e.printStackTrace();
             throw new IOException("Falha ao fazer upload da imagem para o S3: " + e.getMessage(), e);
         }
     }
+
     public URL getProfileImage(Long userId) {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new RuntimeException("Usuário não encontrado com ID: " + userId));
         String s3Key = user.getFoto();
         if (s3Key == null || s3Key.isEmpty()) {
-            throw new RuntimeException("Chave S3 da imagem de perfil não encontrada para o usuário ID: " + userId);
+            throw new RuntimeException("URL da imagem de perfil não encontrada para o usuário ID: " + userId);
         }
-        return s3Client.getUrl(bucketName, s3Key);
+
+        if (s3Key.startsWith("http://") || s3Key.startsWith("https://")) {
+            try {
+                return new URL(s3Key);
+            } catch (Exception e) {
+                throw new RuntimeException("URL da foto de perfil inválida para o usuário: " + userId, e);
+            }
+        } else {
+            return s3Client.getUrl(bucketName, s3Key);
+        }
     }
 
     public String getProfileImageContentType(Long userId) {
