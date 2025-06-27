@@ -22,7 +22,7 @@ public class EmailService {
             message.setFrom(fromEmail);
             message.setTo(to);
             message.setSubject("Redefinição de Senha - Sonora");
-            String resetLink = "http://localhost:5173/esquecisenha";
+            String resetLink = "https://main.d1nvozuchf9f18.amplifyapp.com/esquecisenha";
             String emailContent = "Olá,\n\n"
                     + "Recebemos uma solicitação para redefinir a senha da sua conta.\n\n"
                     + "Para redefinir sua senha, por favor, clique no link abaixo.\n"

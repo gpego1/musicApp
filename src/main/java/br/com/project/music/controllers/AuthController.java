@@ -9,6 +9,10 @@ import br.com.project.music.services.UserService;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -219,8 +223,9 @@ public class AuthController {
         return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
                 .body("Falha na autenticação com Google");
     }
+
     @GetMapping("/user/me")
-    public ResponseEntity<Map<String, Object>> getUserDetails(HttpServletRequest request) {
+    public ResponseEntity<UserResponseDto> getUserDetails(HttpServletRequest request) {
         String authorizationHeader = request.getHeader("Authorization");
         if (authorizationHeader != null && authorizationHeader.startsWith("Bearer ")) {
             String token = authorizationHeader.substring(7);
@@ -228,7 +233,14 @@ public class AuthController {
             if (userEmail != null) {
                 User user = userService.getUserByEmail(userEmail).orElse(null);
                 if (user != null) {
-                    return ResponseEntity.ok(Map.of("id", user.getId(), "nome", user.getName(), "role", user.getRole().name(), "bio", user.getBio()));
+                    UserResponseDto dto = UserResponseDto.builder()
+                            .id(user.getId())
+                            .nome(user.getName())
+                            .role(user.getRole().name())
+                            .bio(user.getBio())
+                            .build();
+                    return ResponseEntity.ok(dto);
+                    //return ResponseEntity.ok(Map.of("id", user.getId(), "nome", user.getName(), "role", user.getRole().name(), "bio", user.getBio()));
                 }
             }
         }
@@ -387,5 +399,16 @@ public class AuthController {
         } else {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Token de autenticação não encontrado.");
         }
+    }
+
+    @Data
+    @Builder
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public static class UserResponseDto{
+        Long id;
+        String nome;
+        String role;
+        String bio;
     }
 }
