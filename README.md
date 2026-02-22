@@ -51,5 +51,5 @@ Infraestrutura hospedada na nuvem utilizando serviços da :contentReference[oaic
 ---
 
 ## 🔔 Sistema de Notificações
-- **Firebase Cloud Messaging (FCM)** através do :contentReference[oaicite:2]{index=2}
+- **Firebase Cloud Messaging (FCM)** através do :fcmToken
 - Envio de notificações personalizadas para usuários da plataforma.
